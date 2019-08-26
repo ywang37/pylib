@@ -4,4 +4,5 @@ __all__=[
         'modified_taylor_diagrams',
         'plot_utility',
         'pro_satellite',
+        'select_region',
         ]
