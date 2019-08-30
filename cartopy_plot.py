@@ -62,7 +62,7 @@ def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60),
     return ax
 
 def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None, 
-        cmap=plt.get_cmap('rainbow'), **kwargs):
+        cmap=plt.get_cmap('rainbow'), title=None, **kwargs):
     """ Transfer some default parameters to pcolormesh.
 
     Parameters
@@ -78,6 +78,7 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         Values smaller than valid_min is masked.
     valid_max :
         Values larger than valid_max is masked.
+    title :
 
     Returns
     -------
@@ -92,8 +93,12 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
     if valid_max is not None:
         C_ma = np.ma.masked_array(C_ma, C_ma>valid_max)
 
+    # The color that represents masked values
     cmap.set_bad('grey')
 
+    # title
+    if title is not None:
+        ax.set_title(title)
 
     mesh = ax.pcolormesh(X, Y, C_ma, cmap=cmap, **kwargs)
 

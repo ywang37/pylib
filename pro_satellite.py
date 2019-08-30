@@ -2,7 +2,7 @@ import numpy as np
 
 def calculate_pixel_edge(data):
     """
-    using center latitude and longitude to calculate edge
+    using center latitude(longitude) to calculate edge
     """
 
     dim = data.shape
@@ -22,3 +22,13 @@ def calculate_pixel_edge(data):
 
     return data_e
 
+def calculate_pixel_edge2(lat_c, lon_c):
+    """
+    Using latitude center and longotude center to calculate
+    latitude edge and longitude edge.
+    """
+
+    lat_e = calculate_pixel_edge(lat_c)
+    lon_e = calculate_pixel_edge(lon_c)
+
+    return lat_e, lon_e
