@@ -104,14 +104,44 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
 
     return mesh
 
+def scatter(ax, X, Y, **kwargs):
+    """ Transfer some default parameters to scatter.
 
+    Parameters
+    ----------
+    ax : GeoAxes
+    X :
+        Longitude
+    Y :
+        Latitude
 
+    """
 
+    ax.scatter(X, Y, **kwargs)
 
+def plot_polygon(ax, corner_lat, corner_lon, title=None, **kwargs):
+    """ Plot satellite granule contour
 
+    Parameters
+    ----------
+    ax : GeoAxes
+    corner_lat : array-like, shape (n_points,)
+        Corner latitudes
+    corner_lon : array-like, shape (n_points,)
+        Corner longitudes
+    title : str
+        Title label
 
+    """
 
+    n_points = corner_lat.shape[0]
 
+    corner_lat_c = np.zeros((n_points+1,))
+    corner_lat_c[0:n_points] = corner_lat
+    corner_lat_c[n_points] = corner_lat[0]
 
+    corner_lon_c = np.zeros((n_points+1,))
+    corner_lon_c[0:n_points] = corner_lon
+    corner_lon_c[n_points] = corner_lon[0]
 
-
+    ax.plot(corner_lon_c, corner_lat_c, transform=ccrs.Geodetic(), **kwargs)

@@ -11,7 +11,7 @@ def plot_box(m, region, **kwargs):
 
     region : tuple-like
     Define the region to be ploted.
-    (min_lat, min_lon, max_lat, max)
+    (min_lat, min_lon, max_lat, max_lon)
 
     """
 
@@ -38,4 +38,24 @@ def plot_box(m, region, **kwargs):
     m.plot(x_b, y_b, latlon=True, **kwargs)
 
 
+def region_limit_to_vertex(region_limit):
+    """ Convert region_limit to vertex information.
 
+    Parameters
+    ----------
+    region_limit : tuple-like
+        (min_lat, min_lon, max_lat, max_lon)
+
+    Returns
+    -------
+    lat : tuple
+        Latitudes of vertexes
+    lon : tuple
+        Longitudes of vertexes
+
+    """
+
+    lat = (region_limit[0], region_limit[0], region_limit[2], region_limit[2])
+    lon = (region_limit[1], region_limit[3], region_limit[3], region_limit[1])
+
+    return lat, lon
