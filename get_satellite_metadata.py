@@ -6,7 +6,7 @@ Created on August 31, 2019
 
 from netCDF4 import Dataset
 
-def get_mxd04(filename):
+def get_mxd04_metadata(filename):
     """Get Metadata from MxD04 file
 
     Returns:
