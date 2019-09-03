@@ -1,9 +1,11 @@
 __all__=[
+        'aeronetpy',
         'cartopy_plot',
         'emphasize_small_map',
         'gbcwpry_map',
         'modified_taylor_diagrams',
         'plot_utility',
+        'pro_aerosol',
         'pro_satellite',
         'select_region',
         ]
