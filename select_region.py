@@ -18,7 +18,7 @@ def is_in_the_region(lat, lon, region):
         Longitude.
     region : tuple-like
         Define the region.
-        (min_lat, min_lon, max_lat, max)
+        (min_lat, min_lon, max_lat, max_lon)
 
     Returns
     -------
@@ -40,6 +40,40 @@ def is_in_the_region(lat, lon, region):
 
     # Latidue and longitude limits
     flag = np.logical_and(flag_lat, flag_lon)
+
+    return flag
+
+def is_in_the_granule(sat_lat, sat_lon, ref_lat, ref_lon):
+    """ Check if point(s) (ref_lat, ref_on) is the rectangle that
+    encompass the granule.
+
+    Parameters
+    ----------
+    sat_lat : array
+        Satellite latitude
+    sat_lon : array
+        Satellite longitude
+    ref_lat : float or float array
+        Point(s) latitude
+    ref_lon : float or float array
+        Point(s) longitude
+
+    Returns
+    -------
+    flag : logical or logical array
+        The point(s) is in (True) the rectangle that encompass
+        the granule or not (False).
+
+    """
+
+    # Define the rectangle that encompass the granule.
+    min_lat = np.min(sat_lat)
+    max_lat = np.max(sat_lat)
+    min_lon = np.min(sat_lon)
+    max_lon = np.max(sat_lon)
+    region = (min_lat, min_lon, max_lat, max_lon)
+
+    flag = is_in_the_region(ref_lat, ref_lon, region)
 
     return flag
 
