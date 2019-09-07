@@ -109,6 +109,45 @@ def MODIS_in_the_region(filename, region):
 
     return flag
 
+def MODIS_in_regions(filename, region_dict):
+    """ Check if there is at least one pixel of the granule (filename)
+    that is in the regions.
+
+    Parameters
+    ----------
+    filename : str
+        MODIS filename
+    region_dict : dict
+        keys are region name
+        values are (min_lat, min_lon, max_lat, max)
+
+    Returns
+    -------
+    out_data : list
+        Name of regions that least one pixel of the granule (filename)
+
+    """
+
+    # Read latitude and longitude.
+    f = Dataset(filename, 'r')
+    lat = f.variables['Latitude'][:]
+    lon = f.variables['Longitude'][:]
+    f.close()
+
+    out_data = []
+    for region_name in region_dict:
+
+        region_limit = region_dict[region_name]
+
+        # Check every pixel.
+        all_pixel_flag = is_in_the_region(lat, lon, region_limit)
+        
+        # At least one pixel.
+        if np.any(all_pixel_flag):
+            out_data.append(region_name)
+
+    return out_data
+
 def all_files_in_the_region(all_files, region):
     """ Return all the filenames that has at least one pixel of the 
         granule (filename) that is in the region.
@@ -137,3 +176,47 @@ def all_files_in_the_region(all_files, region):
             select_file.append(filename)
 
     return select_file
+
+def all_files_in_regions(all_files, region_dict):
+    """ Return all the filenames that has at least one pixel of the
+        granule (filename) that is in the regions.
+
+    Parameters
+    ----------
+    all_files : tuple-like
+        Element is filename.
+    region_dict : dict
+        keys are region name
+        values are (min_lat, min_lon, max_lat, max)
+
+    Returns
+    -------
+    out_data : dict
+       keys are region names
+       valules are granules (filenames) that are in the region
+
+    """
+
+    out_data = {}
+    for region_name in region_dict:
+        out_data[region_name] = []
+
+    #
+    for filename in all_files:
+
+        # name of regions that the granule overpass
+        overpass_regions = MODIS_in_regions(filename, region_dict)
+
+        for rg_name in overpass_regions:
+            out_data[rg_name].append(filename)
+
+    return out_data
+
+
+
+
+
+
+
+
+

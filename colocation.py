@@ -117,7 +117,7 @@ def colocate_site_satellite(site_TAI93, site_var, site_lat, site_lon,
     site_N = None
     sat_result = {}
     for sat_var_name in sat_var_dict:
-        sat_result[sat_var_name] = (None, None)
+        sat_result[sat_var_name] = (None, 0)
 
     # Time winodw
     # Average wind speed is 50 km/h or 50 km per 3600 seconds.
@@ -245,7 +245,7 @@ def save_colocation_to_dict(colocation_result, TAI93, site_var, site_var_N,
     # convert TAI93 to YYYY-MM-DD HH:MM:SS
     ref_time = datetime.datetime.strptime('1993-01-01 00:00:00',
                                           '%Y-%m-%d %H:%M:%S')
-    curr_time = ref_time + datetime.timedelta(seconds=TAI93)
+    curr_time = ref_time + datetime.timedelta(seconds=round(TAI93))
     ymd = str(curr_time).split()[0]
     hms = str(curr_time).split()[1]
 
