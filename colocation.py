@@ -237,8 +237,15 @@ def save_colocation_to_dict(colocation_result, TAI93, site_var, site_var_N,
                 'TAI93' : [],
                 site_var_name  : [],
                 site_var_N_name : [],
-                'sat'
+                sat_result.keys() : [],
+                sat_result.keys()+'_N' : [],
+                'lat' : []
+                'lon' : []
                 }
+
+    Returns
+    -------
+    None
 
     """
 
