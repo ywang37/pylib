@@ -7,5 +7,6 @@ __all__=[
         'plot_utility',
         'pro_aerosol',
         'pro_satellite',
+        'read_AIRS',
         'select_region',
         ]
