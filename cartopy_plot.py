@@ -63,7 +63,9 @@ def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60),
 
 def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None, 
         cmap=plt.get_cmap('rainbow'), title=None, **kwargs):
-    """ Transfer some default parameters to pcolormesh.
+    """ (1) Transfer some default parameters to pcolormesh.
+        (2) Let pcolormesh can plot RGB image when *C* is a
+            3D array.
 
     Parameters
     ----------
@@ -72,8 +74,11 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         Longitude
     Y : 
         Latitude
-    C : 
-        The values will be colored
+    C : 2D or 3D numpy array
+        2D: (lat_dim, lon_dim)
+        3D: (lat_dim, lon_dim, 3), the third dim is
+            for R, G, and B channels.
+
     valid_min :
         Values smaller than valid_min is masked.
     valid_max :
@@ -86,21 +91,33 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
 
     """
 
-    # Mask array
-    C_ma = np.array(C)
-    if valid_min is not None:
-        C_ma = np.ma.masked_array(C_ma, C_ma<valid_min)
-    if valid_max is not None:
-        C_ma = np.ma.masked_array(C_ma, C_ma>valid_max)
+    # pseudocolor plot
+    if (C.ndim == 2):
 
-    # The color that represents masked values
-    cmap.set_bad('grey')
+        # Mask array
+        C_ma = np.array(C)
+        if valid_min is not None:
+            C_ma = np.ma.masked_array(C_ma, C_ma<valid_min)
+        if valid_max is not None:
+            C_ma = np.ma.masked_array(C_ma, C_ma>valid_max)
+
+        # The color that represents masked values
+        cmap.set_bad('grey')
+    
+        mesh = ax.pcolormesh(X, Y, C_ma, cmap=cmap, **kwargs)
+
+    # true color image
+    else:
+
+        mesh_rgb = C[:, :-1, :]
+        colorTuple = \
+                mesh_rgb.reshape((mesh_rgb.shape[0] * mesh_rgb.shape[1]), 3)
+        colorTuple = np.insert(colorTuple,3,1.0,axis=1)
+        mesh = ax.pcolormesh(X, Y, C[:,:,0], color=colorTuple)
 
     # title
     if title is not None:
         ax.set_title(title)
-
-    mesh = ax.pcolormesh(X, Y, C_ma, cmap=cmap, **kwargs)
 
     return mesh
 
