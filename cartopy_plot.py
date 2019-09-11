@@ -9,6 +9,8 @@ from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import matplotlib.pyplot as plt
 import numpy as np
 
+from mylib.pro_satellite import scale_image_multi_c
+
 def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60), 
         ytick=np.arange(-90, 90.1, 30), zero_direction_label=False,
         dateline_direction_label=False, number_format='g',
@@ -62,7 +64,8 @@ def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60),
     return ax
 
 def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None, 
-        cmap=plt.get_cmap('rainbow'), title=None, **kwargs):
+        cmap=plt.get_cmap('rainbow'), title=None, 
+        enhance=True, **kwargs):
     """ (1) Transfer some default parameters to pcolormesh.
         (2) Let pcolormesh can plot RGB image when *C* is a
             3D array.
@@ -84,6 +87,8 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
     valid_max :
         Values larger than valid_max is masked.
     title :
+    enhance : logical
+        Image enhancement
 
     Returns
     -------
@@ -110,6 +115,10 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
     else:
 
         mesh_rgb = C[:, :-1, :]
+
+        if enhance:
+            mesh_rgb = scale_image_multi_c(mesh_rgb)
+
         colorTuple = \
                 mesh_rgb.reshape((mesh_rgb.shape[0] * mesh_rgb.shape[1]), 3)
         colorTuple = np.insert(colorTuple,3,1.0,axis=1)
