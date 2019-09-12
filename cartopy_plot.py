@@ -6,6 +6,7 @@ Created on August 29, 2019
 
 import cartopy.crs as ccrs
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+import copy
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -64,8 +65,8 @@ def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60),
     return ax
 
 def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None, 
-        cmap=plt.get_cmap('rainbow'), title=None, 
-        enhance=True, **kwargs):
+        cmap=plt.get_cmap('rainbow'), bad_c='grey', bad_a=1.0, 
+        title=None, enhance=True, **kwargs):
     """ (1) Transfer some default parameters to pcolormesh.
         (2) Let pcolormesh can plot RGB image when *C* is a
             3D array.
@@ -86,6 +87,11 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         Values smaller than valid_min is masked.
     valid_max :
         Values larger than valid_max is masked.
+    cmap :
+    bad_c : str
+        The color for masked pixels
+    bad_a : float
+        Transparency of masked pixels
     title :
     enhance : logical
         Image enhancement
@@ -100,14 +106,14 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
     if (C.ndim == 2):
 
         # Mask array
-        C_ma = np.array(C)
+        C_ma = copy.deepcopy(C)
         if valid_min is not None:
             C_ma = np.ma.masked_array(C_ma, C_ma<valid_min)
         if valid_max is not None:
             C_ma = np.ma.masked_array(C_ma, C_ma>valid_max)
 
         # The color that represents masked values
-        cmap.set_bad('grey')
+        cmap.set_bad(bad_c, alpha=bad_a)
     
         mesh = ax.pcolormesh(X, Y, C_ma, cmap=cmap, **kwargs)
 
