@@ -73,3 +73,54 @@ def get_modis_1km_rgb(filename, verbose=False):
     fid.close()
 
     return lat, lon, rgb
+
+def read_mxd04(filename, varnames=[], verbose=False):
+    """ Read MxD04_L2 product.
+
+    Parameters
+    ----------
+    filename : str
+        MxD04_L2 file.
+    varnames : list
+        A list of variable names.
+    verbose : logical
+        Whether or not output more informations.
+
+    Returns
+    -------
+    out_data : dict
+        A dictionary of all variables.
+    """
+
+    if verbose:
+        print(' - read_mxd04: reading ' + filename)
+
+    # all variable names
+    all_varnames = [
+            'Latitude', 'Longitude',
+            'Effective_Optical_Depth_Average_Ocean',
+            'Mean_Reflectance_Ocean',
+            'Optical_Depth_Land_And_Ocean',
+            ]
+    all_varnames.extend(varnames)
+    all_varnames = list(set(all_varnames))
+
+    # open dataset
+    fid = Dataset(filename, 'r')
+
+    # read variables
+    out_data = {}
+    for varname in all_varnames:
+        out_data[varname] = fid.variables[varname][:]
+
+    # close dataset
+    fid.close()
+
+    return out_data
+
+
+
+
+
+
+

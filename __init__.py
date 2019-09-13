@@ -3,10 +3,14 @@ __all__=[
         'cartopy_plot',
         'emphasize_small_map',
         'gbcwpry_map',
+        'get_satellite_metadata',
         'modified_taylor_diagrams',
+        'plot_airs',
         'plot_utility',
         'pro_aerosol',
         'pro_satellite',
-        'read_AIRS',
+        'read_airs',
+        'read_modis',
+        'scatter_plot'
         'select_region',
         ]

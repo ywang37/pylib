@@ -15,14 +15,13 @@ StdPressureLev = [
            2. ,    1.5,    1. ,
         ]
 
-def read_AIRS3STD(filename, varnames, verbose=False):
+def read_AIRS3STD(filename, varnames=[], verbose=False):
     """ read AIRS standard L3 daily product.
 
     Parameters
     ----------
     filename : str
         AIRS standard L3 daily product file.
-
     varnames : list
         A list of variable names
     verbose : logical
