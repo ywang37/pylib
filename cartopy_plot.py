@@ -115,7 +115,8 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         # The color that represents masked values
         cmap.set_bad(bad_c, alpha=bad_a)
     
-        mesh = ax.pcolormesh(X, Y, C_ma, cmap=cmap, **kwargs)
+        mesh = ax.pcolormesh(X, Y, C_ma, cmap=cmap, transform=ax.projection,
+                **kwargs)
 
     # true color image
     else:
@@ -128,7 +129,8 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         colorTuple = \
                 mesh_rgb.reshape((mesh_rgb.shape[0] * mesh_rgb.shape[1]), 3)
         colorTuple = np.insert(colorTuple,3,1.0,axis=1)
-        mesh = ax.pcolormesh(X, Y, C[:,:,0], color=colorTuple)
+        mesh = ax.pcolormesh(X, Y, C[:,:,0], color=colorTuple, 
+                transform=ax.projection)
 
     # title
     if title is not None:
