@@ -114,7 +114,7 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
 
         # The color that represents masked values
         cmap.set_bad(bad_c, alpha=bad_a)
-    
+   
         mesh = ax.pcolormesh(X, Y, C_ma, cmap=cmap, transform=ax.projection,
                 **kwargs)
 

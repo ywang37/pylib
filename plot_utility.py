@@ -59,3 +59,4 @@ def region_limit_to_vertex(region_limit):
     lon = (region_limit[1], region_limit[3], region_limit[3], region_limit[1])
 
     return lat, lon
+
