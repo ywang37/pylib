@@ -151,7 +151,9 @@ def scatter(ax, X, Y, **kwargs):
 
     """
 
-    ax.scatter(X, Y, **kwargs)
+    paths = ax.scatter(X, Y, **kwargs)
+
+    return paths
 
 def plot_polygon(ax, corner_lat, corner_lon, title=None, **kwargs):
     """ Plot satellite granule contour
