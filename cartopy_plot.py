@@ -51,16 +51,19 @@ def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60),
     ax.coastlines()
 
     # Tick labels
-    ax.set_xticks(xtick, crs=ccrs.PlateCarree())
-    ax.set_yticks(ytick, crs=ccrs.PlateCarree())
-    lon_formatter = LongitudeFormatter(
-            zero_direction_label=zero_direction_label,
-            dateline_direction_label=dateline_direction_label,
-            number_format=number_format, degree_symbol=degree_symbol)
-    lat_formatter = LatitudeFormatter(number_format=number_format,
-            degree_symbol=degree_symbol)
-    ax.xaxis.set_major_formatter(lon_formatter)
-    ax.yaxis.set_major_formatter(lat_formatter)
+    tick_proj = ['PlateCarree', 'Mercator']
+    proj = str(type(ax.projection)).split('.')[-1][0:-2]
+    if proj in tick_proj:
+        ax.set_xticks(xtick, crs=ccrs.PlateCarree())
+        ax.set_yticks(ytick, crs=ccrs.PlateCarree())
+        lon_formatter = LongitudeFormatter(
+                zero_direction_label=zero_direction_label,
+                dateline_direction_label=dateline_direction_label,
+                number_format=number_format, degree_symbol=degree_symbol)
+        lat_formatter = LatitudeFormatter(number_format=number_format,
+                degree_symbol=degree_symbol)
+        ax.xaxis.set_major_formatter(lon_formatter)
+        ax.yaxis.set_major_formatter(lat_formatter)
 
     return ax
 
