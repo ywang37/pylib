@@ -121,7 +121,7 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         # The color that represents masked values
         cmap.set_bad(bad_c, alpha=bad_a)
    
-        mesh = ax.pcolormesh(X, Y, C_ma, cmap=cmap, 
+        mesh = ax.pcolormesh(X, Y, C_ma, cmap=copy.deepcopy(cmap), 
                 transform=ccrs.PlateCarree(),
                 **kwargs)
 
@@ -148,6 +148,84 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         ax.set_title(title)
 
     return mesh
+    
+def contourf(ax, *args, valid_min=None, valid_max=None, 
+        cmap=plt.get_cmap('rainbow'), bad_c='grey', bad_a=1.0, 
+        title=None, cbar=False, **kwargs):
+    """ (1) Transfer some default parameters to pcolormesh.
+        (2) Let pcolormesh can plot RGB image when *C* is a
+            3D array.
+
+    Parameters
+    ----------
+    ax : GeoAxes
+    *args : 
+        Same as *args in plt.contourf
+        contourf(ax, [X, Y], Z, [levels], ...... )
+    valid_min :
+        Values smaller than valid_min is masked.
+    valid_max :
+        Values larger than valid_max is masked.
+    cmap :
+    bad_c : str
+        The color for masked pixels
+    bad_a : float
+        Transparency of masked pixels
+    title : str
+        plot title
+    cbar : logical
+        Plot colorbar
+
+    Returns
+    -------
+    out_dict : dict
+        qcs: return of ax.pcolormesh
+
+    """
+
+    out_dict = dict()
+
+    # get *args
+    args = list(args)
+    if (len(args) == 1) or (len(args) == 2):
+        C_ma = copy.deepcopy(args[0])
+    elif (len(args) == 3) or (len(args) == 4):
+        C_ma = copy.deepcopy(args[2])
+    else:
+        print(' - contourf: Number of parameters is incorrect.')
+        exit()
+
+    # mask array
+    if valid_min is not None:
+        C_ma = np.ma.masked_array(C_ma, C_ma<valid_min)
+    if valid_max is not None:
+        C_ma = np.ma.masked_array(C_ma, C_ma>valid_max)
+
+    # put back masked array
+    if (len(args) == 1) or (len(args) == 2):
+        args[0] = C_ma
+    elif (len(args) == 3) or (len(args) == 4):
+        args[2] = C_ma
+
+    # The color that represents masked values
+    cmap.set_bad(bad_c, alpha=bad_a)
+   
+    qcs = ax.pcolormesh(*args, cmap=copy.deepcopy(cmap), 
+            transform=ccrs.PlateCarree(),
+            **kwargs)
+    out_dict['qcs'] = qcs
+
+
+    # colorbar
+    if cbar:
+        cb = plt.colorbar(qcs, ax=ax)
+        out_dict['cb'] = cb
+
+    # title
+    if title is not None:
+        ax.set_title(title)
+
+    return out_dict
 
 def scatter(ax, X, Y, **kwargs):
     """ Transfer some default parameters to scatter.
