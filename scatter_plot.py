@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import stats
+
+import mylib.metrics as ms
 
 def histogram2D(ax, in_x_data, in_y_data, bins=10, range=None,
         weights=None, density=None, 
@@ -53,10 +56,21 @@ def histogram2D(ax, in_x_data, in_y_data, bins=10, range=None,
 
     return mesh
 
-def scatter(ax, in_x_data, in_y_data, label_p = 'upper left', \
+def scatter(ax, in_x_data, in_y_data, \
+        label_ul=None, label_lr=None,
+        text_color=None,
         regress_line=True, one2one_line=True, **kwargs):
     """ Function to create scatter plots.
     """
+
+    if label_ul is None:
+        label_ul = [
+                'R',
+                'x_mean_std',
+                'y_mean_std',
+                'rmse',
+                'N'
+                ]
     
     # copy and flatten data
     x_data = in_x_data.flatten()
@@ -76,39 +90,7 @@ def scatter(ax, in_x_data, in_y_data, label_p = 'upper left', \
     # Calculates a Pearson correlation coefficient 
     # and the p-value for testing non-correlation
     r, p_value = stats.pearsonr(x_data, y_data)
-
-    rmse   = np.std(y_data-x_data, ddof=0)
-    mean_x = np.mean(x_data)
-    mean_y = np.mean(y_data)
-    std_x  = np.std(x_data, ddof=1)
-    std_y  = np.std(y_data, ddof=1)
-    
-    # create scatter plot
-    paths = ax.scatter(x_data, y_data, **kwargs)
-    
-    # add slope line
-    min_x = np.nanmin(x_data)
-    max_x = np.nanmax(x_data)
-    min_y = np.nanmin(y_data)
-    max_y = np.nanmax(y_data)
-    x = np.array((min_x-np.absolute(min_x),max_x+np.absolute(max_x)))
-    y = (slope * x) + intercept
-    if regress_line:
-        ax.plot(x, y, '-', color='black', linewidth=1.6)
-    if one2one_line:
-        ax.plot(x, x, '--', color='black', linewidth=0.8)
-    
-    # create strings for equations in the plot
-    correlation_string = "R = {:.2f}".format(r)
-    
-    sign = " + "
-    if intercept < 0:
-        sign = " - "
-        
-    lineal_eq = "y = " + str(round(slope, 2)) + "x" + sign \
-            + str(round(abs(intercept), 2))
-    rmse_coef = "RMSE = " + str(round(rmse,2))
-
+    r_s = "R = {:.2f}".format(r)
     if p_value >= 0.05:
         p_value_s = "(p > 0.05)"
     else:
@@ -117,62 +99,133 @@ def scatter(ax, in_x_data, in_y_data, label_p = 'upper left', \
         else:
             p_value_s = "(p < 0.05)"
 
-    n_collocations = "N = " + str(n_colocations)
-    x_mean_std = "x: " + str(round(mean_x, 3)) \
-            + " $\pm$ " + str(round(abs(std_x), 2))
-    y_mean_std = "y: " + str(round(mean_y, 3)) \
-            + " $\pm$ " + str(round(abs(std_y), 2))
+    # number of valid values
+    N_s = "N = " + str(n_colocations)
 
-    print(correlation_string + ' ' + p_value_s)
+    # mean
+    mean_x = np.mean(x_data)
+    mean_y = np.mean(y_data)
 
-    if (label_p == 'upper left'):
-        equations0 = \
-                correlation_string + ' ' + p_value_s + '\n' + \
-                x_mean_std + '\n' + \
-                y_mean_std + '\n' + \
-                rmse_coef  + '\n' + \
-                n_collocations
+    # standard deviation
+    std_x  = np.std(x_data, ddof=1)
+    std_y  = np.std(y_data, ddof=1)
 
-        # upper left
+    # mean and standard deviation
+    x_mean_std_s = "x: " + str(round(mean_x, 3)) \
+            + r" $\pm$ " + str(round(abs(std_x), 2))
+    y_mean_std_s = "y: " + str(round(mean_y, 3)) \
+            + r" $\pm$ " + str(round(abs(std_y), 2))
+
+    # mean bias
+    mb = ms.MB(x_data, y_data)
+    mb_s = 'MB = {:.2f}'.format(mb)
+
+    # normalized mean bias
+    nmb = ms.NMB(x_data, y_data)
+    nmb_s = 'NMB = {:.1f}%'.format(nmb*100)
+
+    # mean squared error
+    mse = ms.MSE(x_data, y_data)
+    mse_s = 'MSE = {:.2f}'.format(mse)
+
+    # root mean squared error
+    rmse = ms.RMSE(x_data, y_data)
+    rmse_s = 'RMSE = {:.2f}'.format(rmse)
+
+    # normalized centralized root mean squared error
+    ncrmse = ms.NCRMSE(x_data, y_data)
+    ncrmse_s = 'NCRMSE = {:.2f}'.format(ncrmse)
+
+    # Normalized mean squared error. 
+    # (normalized by mean(obs) * mean(est))
+    nmse_mean = ms.NMSE_mean(x_data, y_data)
+    nmse_mean_s = 'NMSE = {:.2f}'.format(nmse_mean)
+
+    # Normalized mean squared error. 
+    # (normalized by variance(obs))
+    nmse_var = ms.NMSE_var(x_data, y_data)
+    nmse_var_s = 'NMSE = {:.2f}'.format(nmse_var)
+
+    # linear regression equation    
+    sign = " + "
+    if intercept < 0:
+        sign = " - "
+    linear_eq_s = "y = " + str(round(slope, 2)) + "x" + sign \
+            + str(round(abs(intercept), 2))
+
+
+    # statistic label dictornary
+    stat_label = {
+            'R': r_s + ' ' + p_value_s,
+            'x_mean_std': x_mean_std_s,
+            'y_mean_std': y_mean_std_s,
+            'rmse': rmse_s,
+            'ncrmse': ncrmse_s,
+            'mse': mse_s,
+            'N': N_s,
+            'mb': mb_s,
+            'nmb': nmb_s,
+            'nmse_mean': nmse_mean_s,
+            'nmse_var': nmse_var_s,
+            'linear_eq': linear_eq_s
+            }
+    label_list = [
+            'N',
+            'R',
+            'linear_eq',
+            'x_mean_std',
+            'y_mean_std',
+            'rmse',
+            'ncrmse',
+            'mse',
+            'mb',
+            'nmb',
+            'nmse_mean',
+            'nmse_var'
+            ]
+    print(' - scatter: statistics')
+    for label in label_list:
+        print(stat_label[label])
+
+   
+    # create scatter plot
+    paths = ax.scatter(x_data, y_data, **kwargs)
+    
+    # add slope line
+    min_x = np.nanmin(x_data)
+    max_x = np.nanmax(x_data)
+    min_y = np.nanmin(y_data)
+    max_y = np.nanmax(y_data)
+    x = np.array((min_x-3*np.absolute(min_x),max_x+3*np.absolute(max_x)))
+    y = (slope * x) + intercept
+    if regress_line:
+        ax.plot(x, y, '-', color='black', linewidth=1.6)
+    if one2one_line:
+        ax.plot(x, x, '--', color='black', linewidth=0.8)
+    
+    # label_ul
+    if label_ul is not None:
+        label = ''
+        for var_n in label_ul:
+            var_v = stat_label[var_n]
+            label = label + var_v + '\n'
         posXY0      = (0, 1)
         posXY_text0 = (5, -5)
-        ax.annotate(equations0, xy=posXY0, xytext=posXY_text0, va='top', \
-                xycoords='axes fraction', textcoords='offset points')
-    elif (label_p == 'lower right'):
-        equations0 = n_collocations + '\n' + \
-                rmse_coef  + '\n' + \
-                x_mean_std + '\n' + \
-                y_mean_std # + '\n' + \
-                #lineal_eq  + '\n' + \
-                #correlation_string + ' ' + p_value_s
+        ax.annotate(label, xy=posXY0, xytext=posXY_text0, va='top', 
+                xycoords='axes fraction', textcoords='offset points',
+                color=text_color)
 
-        # lower right
+    # label_lr
+    if label_lr is not None:
+        label = ''
+        for var_n in label_lr:
+            var_v = stat_label[var_n]
+            label = label + var_v + '\n'
         posXY0      = (1, 0)
-        posXY_text0 = (-5, 5)
-        ax.annotate(equations0, xy=posXY0, xytext=posXY_text0, 
-                va='bottom', ha='right',
-                xycoords='axes fraction', textcoords='offset points')
-
-    elif (label_p == 'positive'):
-        equations1 = correlation_string + ' ' + p_value_s + '\n'+ \
-                lineal_eq  + '\n' + \
-                rmse_coef  + '\n'
-        equations2 = n_collocations + '\n' + \
-                x_mean_std + '\n' + \
-                y_mean_std
-            
-        posXY1      = (0, 1)
-        posXY_text1 = (5, -5)
-        ax.annotate(equations1, xy=posXY1, xytext=posXY_text1, va='top', \
-                xycoords='axes fraction', textcoords='offset points')
-    
-        posXY2      = (1, 0)
-        posXY_text2 = (-5, 5)
-        ax.annotate(equations2, xy=posXY2, xytext=posXY_text2, 
-                va='bottom', ha='right', 
-                xycoords='axes fraction', textcoords='offset points')
-    else:
-        '!!! scatter: label_p error !!!'
-        exit()
+        posXY_text0 = (-5, -5)
+        ax.annotate(label, xy=posXY0, xytext=posXY_text0, 
+                va='bottom',  ha='right',
+                xycoords='axes fraction', textcoords='offset points',
+                color=text_color)
     
     return paths, slope, intercept
