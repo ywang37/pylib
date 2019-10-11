@@ -15,7 +15,9 @@ from mylib.pro_satellite import scale_image_multi_c
 def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60), 
         ytick=np.arange(-90, 90.1, 30), zero_direction_label=False,
         dateline_direction_label=False, number_format='g',
-        degree_symbol=u'\u00B0', **kwargs):
+        degree_symbol=u'\u00B0', 
+        cl_res='110m',
+        **kwargs):
     """ Add a GeoAxes instance to Figure (fig) instance.
 
     Parameters
@@ -34,7 +36,10 @@ def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60),
     dateline_direction_label :
         Direction label at 180 degree longitude
     number_format :
-    degree_symbol : 
+    degree_symbol :
+    cl_res : str
+        Coastline resolution. 
+        Currently can be one of “110m”, “50m”, and “10m”
 
     Returns
     -------
@@ -48,7 +53,7 @@ def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60),
 
     ax = fig.add_subplot(*args, **kwargs)
 
-    ax.coastlines()
+    ax.coastlines(resolution=cl_res)
 
     # Tick labels
     tick_proj = ['PlateCarree', 'Mercator']
@@ -240,7 +245,7 @@ def scatter(ax, X, Y, **kwargs):
 
     """
 
-    paths = ax.scatter(X, Y, **kwargs)
+    paths = ax.scatter(X, Y, transform=ccrs.PlateCarree(), **kwargs)
 
     return paths
 
