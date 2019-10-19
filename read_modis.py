@@ -74,6 +74,42 @@ def get_modis_1km_rgb(filename, verbose=False):
 
     return lat, lon, rgb
 
+#def read_mxd03(filename, varnames=[], replace=False, verbose=Flase):
+#    """ Read MxD03 product
+#
+#    Parameters
+#    ----------
+#    filename : str
+#        MxD03 file.
+#    varnames : list
+#        a list of variable names.
+#    replace : logical
+#        True: replace all_varnames by varnames
+#        False: extend varnames to all_varnames
+#    verbose : logical
+#        Whether or not output more informations.
+#
+#    Returns
+#    -------
+#    out_data : dict
+#        A dictionary of all variables.
+#
+#    """
+#
+#    if verbose:
+#        print(' - read_mxd03: reading ' + filename)
+#
+#    # all variable names
+#    all_varnames = [
+#
+#            ]
+#
+#    if not replace:
+#        all_varnames.extend(varnames)
+#        all_varnames = list(set(all_varnames))
+#    else:
+#        all_varnames = varnames
+
 def read_mxd04(filename, varnames=[], verbose=False):
     """ Read MxD04_L2 product.
 
