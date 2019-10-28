@@ -74,7 +74,8 @@ def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60),
 
 def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None, 
         cmap=plt.get_cmap('rainbow'), bad_c='grey', bad_a=1.0, 
-        title=None, enhance=True, cbar=False, **kwargs):
+        title=None, enhance=True, cbar=False, cbar_prop=dict(),
+        **kwargs):
     """ (1) Transfer some default parameters to pcolormesh.
         (2) Let pcolormesh can plot RGB image when *C* is a
             3D array.
@@ -106,12 +107,16 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         Image enhancement
     cbar : logical
         Plot colorbar
+    cbar_prop : dict
+        Proterty for plt.colorbar
 
     Returns
     -------
-    mesh :
+    out_dict : dict
 
     """
+
+    out_dict = dict()
 
     # pseudocolor plot
     if (C.ndim == 2):
@@ -129,10 +134,12 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         mesh = ax.pcolormesh(X, Y, C_ma, cmap=copy.deepcopy(cmap), 
                 transform=ccrs.PlateCarree(),
                 **kwargs)
+        out_dict['mesh'] = mesh
 
         # colorbar
         if cbar:
-            cb = plt.colorbar(mesh, ax=ax)
+            cb = plt.colorbar(mesh, ax=ax, **cbar_prop)
+            out_dict['cb'] = cb
 
     # true color image
     else:
@@ -147,19 +154,18 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         colorTuple = np.insert(colorTuple,3,1.0,axis=1)
         mesh = ax.pcolormesh(X, Y, C[:,:,0], color=colorTuple, 
                 transform=ccrs.PlateCarree())
+        out_dict['mesh'] = mesh
 
     # title
     if title is not None:
         ax.set_title(title)
 
-    return mesh
+    return out_dict
     
 def contourf(ax, *args, valid_min=None, valid_max=None, 
         cmap=plt.get_cmap('rainbow'), bad_c='grey', bad_a=1.0, 
         title=None, cbar=False, **kwargs):
-    """ (1) Transfer some default parameters to pcolormesh.
-        (2) Let pcolormesh can plot RGB image when *C* is a
-            3D array.
+    """ Transfer some default parameters to contourf.
 
     Parameters
     ----------
@@ -184,7 +190,7 @@ def contourf(ax, *args, valid_min=None, valid_max=None,
     Returns
     -------
     out_dict : dict
-        qcs: return of ax.pcolormesh
+        qcs: return of ax.contourf
 
     """
 
@@ -215,7 +221,7 @@ def contourf(ax, *args, valid_min=None, valid_max=None,
     # The color that represents masked values
     cmap.set_bad(bad_c, alpha=bad_a)
    
-    qcs = ax.pcolormesh(*args, cmap=copy.deepcopy(cmap), 
+    qcs = ax.contourf(*args, cmap=copy.deepcopy(cmap), 
             transform=ccrs.PlateCarree(),
             **kwargs)
     out_dict['qcs'] = qcs
