@@ -85,18 +85,23 @@ class TaylorDiagramPoint(object):
                 > nesd**2 = s_predicted**2 + s_expected**2 -
                             2 * s_predicted * s_expected * corcoeff
   """
-  def __init__(self, expected, predicted, pred_name, point_id, marker_id):
-    
+  def __init__(self, expected, predicted, pred_name, point_id, marker_id,
+          normalized):
+
+    self.normalized = normalized
     self.pred = predicted
     self.expd = expected
     self.s_pred = np.std(self.pred)
     self.s_expd = np.std(self.expd)
-    self.s_normd = self.s_pred / self.s_expd
+    if self.normalized:
+        self.s_normd = self.s_pred / self.s_expd
+    else:
+        self.s_normd = self.s_pred
     self.bias = (np.mean(self.pred) - np.mean(self.expd)) / np.mean(self.expd) * 100
     self.corrcoef = np.corrcoef(self.pred, self.expd)[0, 1]
     self.corrcoef = min([self.corrcoef, 1.0])
-    self.nesd = np.sqrt(self.s_pred**2 + self.s_expd**2 - 
-                   2 * self.s_pred * self.s_expd * self.corrcoef)
+#    self.nesd = np.sqrt(self.s_pred**2 + self.s_expd**2 - 
+#                   2 * self.s_pred * self.s_expd * self.corrcoef)
     self.name = pred_name
     self.point_id = point_id
     self.marker_id = marker_id
@@ -108,15 +113,19 @@ class ModTaylorDiagram(object):
     expected and predicted in a single-quadrant polar plot, with
     r=stddev and theta=arccos(correlation).
   """
-  def __init__(self, fig=None, label='expected', max_normed_std=2.5, std_ratios=[1], \
-          bias_vmin=None, bias_vmax=None, \
+  def __init__(self, fig=None, label='expected', max_normed_std=2.5, std_ratios=None, \
+          bias_vmin=None, bias_vmax=None, normalized=True, \
           cmap=plt.cm.jet, s=80, title_expected=r'expected'):
     """
     Set up Taylor diagram axes. 
     """   
     
+    self.normalized     = normalized
     self.title_polar    = r'Correlation'
-    self.title_xy       = r'Normalized Standard Deviation'    
+    if self.normalized:
+        self.title_xy   = r'Normalized Standard Deviation'
+    else:
+        self.title_xy   = r'Standard Deviation'
     self.max_normed_std = max_normed_std
     self.s_min          = 0
     self.std_ratios     = std_ratios
@@ -160,7 +169,8 @@ class ModTaylorDiagram(object):
     self.polar_ax.plot([np.pi/6.95,  np.pi/6.95 ], [self.s_min, self.max_normed_std], color='grey')
 
     # Add norm stddev ratio contours
-    self._plot_req_cont(self.std_ratios)
+    if self.normalized:
+        self._plot_req_cont()
     
     self.points = []
 
@@ -170,7 +180,8 @@ class ModTaylorDiagram(object):
     Add a prediction/model to the diagram
     """
     this_point = TaylorDiagramPoint(expected, predicted, 
-                                    predictor_name, plot_pt_id, plot_marker_id)   
+                                    predictor_name, plot_pt_id, plot_marker_id,
+                                    self.normalized)   
     self.points.append(this_point)
     
   def plot(self):
@@ -302,39 +313,45 @@ class ModTaylorDiagram(object):
             np.linspace(0,np.pi/2))
 
     # Compute centered RMS difference
-    refstd = 1
+    if self.normalized:
+        refstd = 1.0
+    else:
+        # not mormailized by expected standard deviation (s_expd)
+        # (Yi Wang, 11/02/2019)
+        refstd = self.points[0].s_expd
+        rms = np.sqrt((refstd)**2 + rs**2 - 2*(refstd)*rs*np.cos(ts))
     rms = np.sqrt((refstd)**2 + rs**2 - 2*(refstd)*rs*np.cos(ts))
     
     contours = self.polar_ax.contour(ts, rs, rms, levels, **kwargs)
 
     return contours
         
-  def _plot_req_cont(self, std_ratios):
+  def _plot_req_cont(self):
     """
     plot the normalized standard deviation contour
     """
-    self.polar_ax.text(0.08, 1, self.title_expected, color='k', horizontalalignment='center',verticalalignment='center',\
-            fontsize=16)
-    self.polar_ax.scatter(0, 1, c='k', s=75)
+
+    if self.normalized:
+        refstd = 1.0
+    else:
+        refstd = self.points[0].s_expd
 
     t = np.linspace(0, np.pi/2)
     r = np.ones_like(t)
+    if self.std_ratios is not None:
+        std_ratios = self.std_ratios
+    else:
+        std_ratios = [refstd]
+
     for ratio in std_ratios:
         self.polar_ax.plot(t, r*ratio,   '--', color='grey')
-   
-  def _plot_nesd_cont(self, levels=6):
-    """
-    plot the normalized error standard deviation contours
-    """
-    my_blue = [0.171875, 0.39453125, 0.63671875]
-    rs, ts = np.meshgrid(np.linspace(self.s_min, self.max_normed_std),
-                         np.linspace(0, np.pi/2))
 
-    nesd = np.sqrt(1.0 + rs**2 - 2 * rs * np.cos(ts))
-    contours = self.polar_ax.contour(ts, rs, nesd, levels, 
-                                     colors=my_blue, linestyles='dotted')
-                 
-    self.polar_ax.clabel(contours, inline=1, fontsize=14)
+    # expected point
+    self.polar_ax.text(0.08, refstd, 
+            self.title_expected, color='k', 
+            horizontalalignment='center',verticalalignment='center',
+            fontsize=16)
+    self.polar_ax.scatter(0, refstd, c='k', s=75)
     
   def _setup_angle_axis(self):
     """
@@ -384,6 +401,7 @@ class ZoomInTaylorDiagram(object):
   """
   def __init__(self, fig=None, max_normed_std=2.5, std_ratios=[1], \
           bias_vmin=None, bias_vmax=None, \
+          normalized=True,
           cmap=plt.cm.jet, s=80, title_expected=r'expected'):
     """
     Set up Taylor diagram axes. 
@@ -395,6 +413,7 @@ class ZoomInTaylorDiagram(object):
     self.std_ratios     = std_ratios
     self.bias_vmin      = bias_vmin
     self.bias_vmax      = bias_vmax
+    self.normalized     = normalized
     self.cmap           = cmap
     self.s              = s # marker size
     self.title_expected = title_expected
@@ -451,7 +470,8 @@ class ZoomInTaylorDiagram(object):
     Add a prediction/model to the diagram
     """
     this_point = TaylorDiagramPoint(expected, predicted, 
-                                    predictor_name, plot_pt_id, plot_marker_id)   
+                                    predictor_name, plot_pt_id, plot_marker_id,
+                                    self.normalized)   
     self.points.append(this_point)
     
   def plot(self):
@@ -553,7 +573,12 @@ class ZoomInTaylorDiagram(object):
             np.linspace(0,np.pi/2))
 
     # Compute centered RMS difference
-    refstd = 1
+    if self.normalized:
+        refstd = 1.0
+    else:
+        # not mormailized by expected standard deviation (s_expd)
+        # (Yi Wang, 11/02/2019)
+        refstd = self.points[0].s_expd
     rms = np.sqrt((refstd)**2 + rs**2 - 2*(refstd)*rs*np.cos(ts))
     
     contours = self.polar_ax.contour(ts, rs, rms, levels, **kwargs)
@@ -647,9 +672,11 @@ if '__main__'== __name__:
 
     # normalized standard deviation line
     std_ratios = [1, 2]
+    std = None
 
     # maximum of normalized standard deviation
     max_normed_std = 2.4
+    max_std = 25
 
     # normlaized bias limit
     bias_vmin = -100
@@ -660,10 +687,11 @@ if '__main__'== __name__:
 
     # normalized debiased RMSE levels
     levels = [0.5, 1.0, 1.5, 2.0]
+    levels_no_norm = [5, 10, 15, 20]
 
-    ###############################
-    # ModTaylorDiagram example
-    ###############################
+    ########################################
+    # ModTaylorDiagram example (normalized)
+    ########################################
 
     fig1 = plt.figure(figsize=(7,7))
     plt.rcParams.update({'font.size': 12})
@@ -700,9 +728,9 @@ if '__main__'== __name__:
     # normalized bias color bar
     cbar1 = mtd1.bias_colorbar(orientation='horizontal', shrink=0.77, pad=0.08, extend='both')
 
-    ###############################
-    # ModTaylorDiagram example
-    ###############################
+    ############################################
+    # ZoomInTaylorDiagram example normalized
+    ############################################
 
     fig2 = plt.figure(figsize=(7,7))
     plt.rcParams.update({'font.size': 12})
@@ -739,6 +767,53 @@ if '__main__'== __name__:
     # Zoom in
     mtd2.ax.set_xlim(xlim)
     mtd2.ax.set_ylim(ylim)
+
+    ############################################
+    # ModTaylorDiagram example (NOT normalized)
+    ############################################
+
+    fig3 = plt.figure(figsize=(7,7))
+    plt.rcParams.update({'font.size': 12})
+
+    # Initialized an instance
+    mtd3 = ModTaylorDiagram(fig=fig3,max_normed_std=max_std, \
+            bias_vmin=bias_vmin, bias_vmax=bias_vmax, \
+            normalized=False,
+            std_ratios=std, cmap=cmap, title_expected='expected')
+
+    # add points
+    mtd3.add_prediction(ref, model1,        r'', '1', 'o')
+    mtd3.add_prediction(ref, model2,        r'', '1', 's')
+    mtd3.add_prediction(ref, model1_ratio2, r'', '2', 'o')
+    mtd3.add_prediction(ref, model2_ratio2, r'', '2', 's')
+    mtd3.add_prediction(ref, model1_ratio3, r'', '3', 'o')
+    mtd3.add_prediction(ref, model2_ratio3, r'', '3', 's')
+
+    # add standard deviation curve
+    mtd3._plot_req_cont()
+
+    mtd3.plot()
+
+    # normzliaed debiased RMSE countours
+    contours3 = mtd3.add_contours(levels=levels_no_norm, colors='0.5')
+    plt.clabel(contours3, inline=1, fontsize=12, fmt='%2.0f')
+
+    # plot point
+    mtd3.plot()
+
+    # marker legend
+    mtd3.marker_legend( marker_labels )
+
+    # label legend
+    mtd3.stringID_legend( stringID_labels, loc='upper left' )
+
+#    # plot zoom in region
+#    mtd3.ax.plot([xlim[0], xlim[1], xlim[1], xlim[0], xlim[0]], \
+#                 [ylim[0], ylim[0], ylim[1], ylim[1], ylim[0]], \
+#                 'r--', lw=2)
+
+    # normalized bias color bar
+    cbar3 = mtd3.bias_colorbar(orientation='horizontal', shrink=0.77, pad=0.08, extend='both')
 
     plt.show()
 
