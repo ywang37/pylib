@@ -10,10 +10,16 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 
+from mylib.io import read_nc
+from mylib.pro_satellite import calculate_pixel_edge2
 from mylib.pro_satellite import scale_image_multi_c
 
-def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60), 
-        ytick=np.arange(-90, 90.1, 30), zero_direction_label=False,
+#
+#------------------------------------------------------------------------------
+#
+
+def add_geoaxes(fig, *args,
+        xtick=None, ytick=None, zero_direction_label=False,
         dateline_direction_label=False, number_format='g',
         degree_symbol=u'\u00B0', 
         cl_res='110m',
@@ -47,6 +53,12 @@ def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60),
 
     """
 
+    # Set some default variables
+    if xtick is None:
+        xtick = np.arange(-180, 180.1, 60)
+    if ytick is None:
+        ytick = np.arange(-90, 90.1, 30)
+
     # Default projection
     kwargs['projection'] = kwargs.get('projection', ccrs.PlateCarree())
     crs = kwargs.get('projection')
@@ -71,6 +83,10 @@ def add_geoaxes(fig, *args, xtick=np.arange(-180, 180.1, 60),
         ax.yaxis.set_major_formatter(lat_formatter)
 
     return ax
+
+#
+#------------------------------------------------------------------------------
+#
 
 def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None, 
         cmap=plt.get_cmap('rainbow'), bad_c='grey', bad_a=1.0, 
@@ -161,7 +177,11 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         ax.set_title(title)
 
     return out_dict
-    
+
+#
+#------------------------------------------------------------------------------
+#
+
 def contourf(ax, *args, valid_min=None, valid_max=None, 
         cmap=plt.get_cmap('rainbow'), bad_c='grey', bad_a=1.0, 
         title=None, cbar=False, **kwargs):
@@ -238,6 +258,10 @@ def contourf(ax, *args, valid_min=None, valid_max=None,
 
     return out_dict
 
+#
+#------------------------------------------------------------------------------
+#
+
 def scatter(ax, X, Y, **kwargs):
     """ Transfer some default parameters to scatter.
 
@@ -254,6 +278,10 @@ def scatter(ax, X, Y, **kwargs):
     paths = ax.scatter(X, Y, transform=ccrs.PlateCarree(), **kwargs)
 
     return paths
+
+#
+#------------------------------------------------------------------------------
+#
 
 def plot_polygon(ax, corner_lat, corner_lon, title=None, **kwargs):
     """ Plot satellite granule contour
@@ -281,3 +309,124 @@ def plot_polygon(ax, corner_lat, corner_lon, title=None, **kwargs):
     corner_lon_c[n_points] = corner_lon[0]
 
     ax.plot(corner_lon_c, corner_lat_c, transform=ccrs.Geodetic(), **kwargs)
+
+#
+#------------------------------------------------------------------------------
+#
+
+def cartopy_plot(*args, ax=None, fig=None,
+        indices=None,
+        reader=None, reader_prop={},
+        xtick=None,
+        ytick=None,
+        cl_res='110m',
+        region_limit=None,
+        valid_min=None, valid_max=None,
+        cbar=True, cbar_prop = {},
+        title='',
+        **kwargs):
+    """ Plot a variable from coastal water AOD results.
+
+    Parameters
+    ----------
+    *agrs:
+        3 elements: latitude, longitude, variable
+        4 elelemts: latitude_name, longitude_name,
+                    variable_name, filename
+    ax : GeoAxes or None (default)
+        Create a GeoAxes if ax is None. 
+    fig : plt.figure() or None (default)
+        Create a plt.figure() if both fig and ax are None
+    indices : None
+        Used to get subset if the dimension of variable is 
+        larger than 2. (The function is not implemented yet.)
+    reader : function to read data.
+        if reader is None, read_nc is used
+    reader_prop : dict
+        optional variables to reader if reader is not None
+    xtick : list-like
+        Longitude ticks
+    ytick : list-like
+        Latitude ticks
+    cl_res : str
+        Coastline resolution. 
+        Currently can be one of “110m”, “50m”, and “10m”
+    region_limit : tuple-like or None
+        (min_lat, min_lon, max_lat, max_lon)
+    valid_min : float or None
+        Values that are smaller than valid_min is masked.
+    valid_max : float or None
+        Values that are larger that valid_max is masked.
+    cbar : logical
+        Whether or not plot colorbar.
+    cbar_prpo : dict
+        Colorbar properties, transferred to plt.colorbar()
+    title : str
+        Title
+    **kwargs : dict
+        Keywords to pcolormesh
+
+    Returns
+    -------
+    out_dict :
+        keys : ax, fig, mesh
+        operatioanl keys: cb
+
+    """
+
+    out_dict = {}
+
+    # get *args
+    if (len(args) == 4):
+        filename = args[3]
+        var_name = args[0:3]
+        if reader is None:
+            reader = read_nc
+            in_data = reader(filename, varnames=var_name, verbose=True)
+        else:
+            read_prop['verbose'] = read_prop.get('verbose', True)
+            in_data = reader(filename, varnames=var_name, **read_prop)
+        lat = in_data[args[0]]
+        lon = in_data[args[1]]
+        var = in_data[args[2]]
+        if indices is not None:
+            pass
+    else:
+        lat = copy.deepcopy(args[0])
+        lon = copy.deepcopy(args[1])
+        var = copy.deepcopy(args[2])
+
+    # GeoAxes
+    if ax is None:
+        if fig is None:
+            fig = plt.figure()
+        ax = add_geoaxes(fig, cl_res=cl_res, xtick=xtick, ytick=ytick)
+        if region_limit is not None:
+            ax.set_xlim(region_limit[1], region_limit[3])
+            ax.set_ylim(region_limit[0], region_limit[2])
+
+    out_dict['ax'] = ax
+    out_dict['fig'] = fig
+
+    # calculate edge or not
+    if lat.shape == var.shape:
+        lat, lon = calculate_pixel_edge2(lat, lon)
+
+    # colorbar property
+    #cbar_prop['orientation'] = cbar_prop.get('orientation', 'horizontal')
+
+    # plot
+    pout = pcolormesh(ax, lon, lat, var,
+            valid_min=valid_min, valid_max=valid_max,
+            cbar=cbar, cbar_prop=cbar_prop,
+            title=title,
+            **kwargs)
+    out_dict['mesh'] = pout['mesh']
+    out_dict['cb'] = pout.get('cb', None)
+
+    return out_dict
+
+#
+#------------------------------------------------------------------------------
+#
+
