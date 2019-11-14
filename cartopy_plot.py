@@ -23,6 +23,7 @@ def add_geoaxes(fig, *args,
         dateline_direction_label=False, number_format='g',
         degree_symbol=u'\u00B0', 
         cl_res='110m',
+        title=None,
         **kwargs):
     """ Add a GeoAxes instance to Figure (fig) instance.
 
@@ -46,6 +47,8 @@ def add_geoaxes(fig, *args,
     cl_res : str
         Coastline resolution. 
         Currently can be one of “110m”, “50m”, and “10m”
+    title : str or None(default)
+        title
 
     Returns
     -------
@@ -82,6 +85,10 @@ def add_geoaxes(fig, *args,
         ax.xaxis.set_major_formatter(lon_formatter)
         ax.yaxis.set_major_formatter(lat_formatter)
 
+    # title
+    if title is not None:
+        ax.set_title(title)
+
     return ax
 
 #
@@ -117,8 +124,6 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         The color for masked pixels
     bad_a : float
         Transparency of masked pixels
-    title : str
-        plot title
     enhance : logical
         Image enhancement
     cbar : logical
@@ -172,9 +177,6 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
                 transform=ccrs.PlateCarree())
         out_dict['mesh'] = mesh
 
-    # title
-    if title is not None:
-        ax.set_title(title)
 
     return out_dict
 
@@ -184,7 +186,7 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
 
 def contourf(ax, *args, valid_min=None, valid_max=None, 
         cmap=plt.get_cmap('rainbow'), bad_c='grey', bad_a=1.0, 
-        title=None, cbar=False, **kwargs):
+        cbar=False, **kwargs):
     """ Transfer some default parameters to contourf.
 
     Parameters
@@ -202,8 +204,6 @@ def contourf(ax, *args, valid_min=None, valid_max=None,
         The color for masked pixels
     bad_a : float
         Transparency of masked pixels
-    title : str
-        plot title
     cbar : logical
         Plot colorbar
 
@@ -251,10 +251,6 @@ def contourf(ax, *args, valid_min=None, valid_max=None,
     if cbar:
         cb = plt.colorbar(qcs, ax=ax)
         out_dict['cb'] = cb
-
-    # title
-    if title is not None:
-        ax.set_title(title)
 
     return out_dict
 
@@ -323,15 +319,15 @@ def cartopy_plot(*args, ax=None, fig=None,
         region_limit=None,
         valid_min=None, valid_max=None,
         cbar=True, cbar_prop = {},
-        title='',
+        title=None,
         **kwargs):
     """ Plot a variable from coastal water AOD results.
 
     Parameters
     ----------
     *agrs:
-        3 elements: latitude, longitude, variable
-        4 elelemts: latitude_name, longitude_name,
+        3 elements: longitude, latitude, variable
+        4 elelemts: longitude_name, latitude_name,
                     variable_name, filename
     ax : GeoAxes or None (default)
         Create a GeoAxes if ax is None. 
@@ -386,14 +382,14 @@ def cartopy_plot(*args, ax=None, fig=None,
         else:
             read_prop['verbose'] = read_prop.get('verbose', True)
             in_data = reader(filename, varnames=var_name, **read_prop)
-        lat = in_data[args[0]]
-        lon = in_data[args[1]]
+        lon = in_data[args[0]]
+        lat = in_data[args[1]]
         var = in_data[args[2]]
         if indices is not None:
             pass
     else:
-        lat = copy.deepcopy(args[0])
-        lon = copy.deepcopy(args[1])
+        lon = copy.deepcopy(args[0])
+        lat = copy.deepcopy(args[1])
         var = copy.deepcopy(args[2])
 
     # GeoAxes
@@ -401,9 +397,15 @@ def cartopy_plot(*args, ax=None, fig=None,
         if fig is None:
             fig = plt.figure()
         ax = add_geoaxes(fig, cl_res=cl_res, xtick=xtick, ytick=ytick)
-        if region_limit is not None:
-            ax.set_xlim(region_limit[1], region_limit[3])
-            ax.set_ylim(region_limit[0], region_limit[2])
+
+    # set region limit
+    if region_limit is not None:
+        ax.set_xlim(region_limit[1], region_limit[3])
+        ax.set_ylim(region_limit[0], region_limit[2])
+
+    # title
+    if title is not None:
+        ax.set_title(title)
 
     out_dict['ax'] = ax
     out_dict['fig'] = fig
@@ -419,7 +421,6 @@ def cartopy_plot(*args, ax=None, fig=None,
     pout = pcolormesh(ax, lon, lat, var,
             valid_min=valid_min, valid_max=valid_max,
             cbar=cbar, cbar_prop=cbar_prop,
-            title=title,
             **kwargs)
     out_dict['mesh'] = pout['mesh']
     out_dict['cb'] = pout.get('cb', None)

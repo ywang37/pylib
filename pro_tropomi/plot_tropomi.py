@@ -38,15 +38,15 @@ def plot_granule_tropomi_no2(*args, ax=None, fig=None,
         var_name = args[0:3]
         in_data = read_tropomi_no2(filename, varnames=var_name, 
                 replace=True, verbose=True)
-        lat = in_data[args[0]]
-        lon = in_data[args[1]]
+        lon = in_data[args[0]]
+        lat = in_data[args[1]]
         var = in_data[args[2]]
     else:
-        lat = copy.deepcopy(args[0])
-        lon = copy.deepcopy(args[1])
+        lon = copy.deepcopy(args[0])
+        lat = copy.deepcopy(args[1])
         var = copy.deepcopy(args[2])
 
-    out_dict = cartopy_plot(lat, lon, var, ax=None, fig=None,
+    out_dict = cartopy_plot(lon, lat, var, ax=None, fig=None,
             xtick=xtick, ytick=ytick,
             region_limit=region_limit,
             valid_min=valid_min, valid_max=valid_max,
