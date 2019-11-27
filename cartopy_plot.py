@@ -97,7 +97,7 @@ def add_geoaxes(fig, *args,
 
 def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None, 
         cmap=None, bad_c='grey', bad_a=1.0, 
-        title=None, enhance=True, cbar=False, cbar_prop=dict(),
+        enhance=True, cbar=False, cbar_prop=dict(),
         **kwargs):
     """ (1) Transfer some default parameters to pcolormesh.
         (2) Let pcolormesh can plot RGB image when *C* is a
@@ -160,6 +160,7 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         out_dict['mesh'] = mesh
 
         # colorbar
+        ax.reset_position()
         if cbar:
             cb = plt.colorbar(mesh, ax=ax, **cbar_prop)
             out_dict['cb'] = cb
@@ -260,7 +261,9 @@ def contourf(ax, *args, valid_min=None, valid_max=None,
 #------------------------------------------------------------------------------
 #
 
-def scatter(ax, X, Y, **kwargs):
+def scatter(ax, X, Y,
+        cbar=False, cbar_prop=dict(),
+        **kwargs):
     """ Transfer some default parameters to scatter.
 
     Parameters
@@ -270,12 +273,31 @@ def scatter(ax, X, Y, **kwargs):
         Longitude
     Y :
         Latitude
+    cbar : logical
+        Plot colorbar
+    cbar_prop : dict
+        Proterty for plt.colorbar
+
+    Returns
+    -------
+    out_dict : dict
+        keys : paths
+        operatioanl keys: cb
 
     """
 
-    paths = ax.scatter(X, Y, transform=ccrs.PlateCarree(), **kwargs)
+    out_dict = dict()
 
-    return paths
+    # scatter plot
+    paths = ax.scatter(X, Y, transform=ccrs.PlateCarree(), **kwargs)
+    out_dict['paths'] = paths
+
+    # colorbar
+    if cbar:
+        cb = plt.colorbar(paths, ax=ax, **cbar_prop)
+        out_dict['cb'] = cb
+
+    return out_dict
 
 #
 #------------------------------------------------------------------------------
@@ -323,7 +345,7 @@ def cartopy_plot(*args, ax=None, fig=None,
         cbar=True, cbar_prop = {},
         title=None,
         **kwargs):
-    """ Plot a variable from coastal water AOD results.
+    """ Plot a 2-D variable by pcolormesh.
 
     Parameters
     ----------
@@ -433,3 +455,108 @@ def cartopy_plot(*args, ax=None, fig=None,
 #------------------------------------------------------------------------------
 #
 
+def cartopy_plot_scatter(*args, ax=None, fig=None,
+        reader=None, reader_prop={},
+        xtick=None,
+        ytick=None,
+        cl_res='110m',
+        region_limit=None,
+        cbar=True, cbar_prop = {},
+        title=None,
+        **kwargs):
+    """ Plot scatter map.
+    (Yi Wang, 11/27/2019)
+
+    Parameters
+    ----------
+    *agrs:
+        2 elements: longitude, latitude
+        3 elelemts: longitude_name, latitude_name,
+                    filename
+    ax : GeoAxes or None (default)
+        Create a GeoAxes if ax is None. 
+    fig : plt.figure() or None (default)
+        Create a plt.figure() if both fig and ax are None
+    reader : function to read data.
+        if reader is None, read_nc is used
+    reader_prop : dict
+        optional variables to reader if reader is not None
+    xtick : list-like
+        Longitude ticks
+    ytick : list-like
+        Latitude ticks
+    cl_res : str
+        Coastline resolution. 
+        Currently can be one of “110m”, “50m”, and “10m”
+    region_limit : tuple-like or None
+        (min_lat, min_lon, max_lat, max_lon)
+    cbar : logical
+        Whether or not plot colorbar.
+    cbar_prpo : dict
+        Colorbar properties, transferred to plt.colorbar()
+    title : str
+        Title
+    **kwargs : dict
+        Keywords to pcolormesh
+
+    Returns
+    -------
+    out_dict :
+        keys : ax, fig, paths
+        operatioanl keys: cb
+
+    """
+
+    out_dict = {}
+
+    # get *args
+    if (len(args) == 3):
+        filename = args[2]
+        var_name = args[0:2]
+        if reader is None:
+            reader = read_nc
+            in_data = reader(filename, varnames=var_name, verbose=True)
+        else:
+            read_prop['verbose'] = read_prop.get('verbose', True)
+            in_data = reader(filename, varnames=var_name, **read_prop)
+        lon = in_data[args[0]]
+        lat = in_data[args[1]]
+        if indices is not None:
+            pass
+    else:
+        lon = copy.deepcopy(args[0])
+        lat = copy.deepcopy(args[1])
+
+    # GeoAxes
+    if ax is None:
+        if fig is None:
+            fig = plt.figure()
+        ax = add_geoaxes(fig, cl_res=cl_res, xtick=xtick, ytick=ytick)
+
+    # set region limit
+    if region_limit is not None:
+        ax.set_xlim(region_limit[1], region_limit[3])
+        ax.set_ylim(region_limit[0], region_limit[2])
+
+    # title
+    if title is not None:
+        ax.set_title(title)
+
+    out_dict['ax'] = ax
+    out_dict['fig'] = fig
+
+    # colorbar property
+    #cbar_prop['orientation'] = cbar_prop.get('orientation', 'horizontal')
+
+    # plot
+    pout = scatter(ax, lon, lat,
+            cbar=cbar, cbar_prop=cbar_prop,
+            **kwargs)
+    out_dict['paths'] = pout['paths']
+    out_dict['cb'] = pout.get('cb', None)
+
+    return out_dict
+
+#
+#------------------------------------------------------------------------------
+#

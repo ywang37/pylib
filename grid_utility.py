@@ -64,4 +64,62 @@ latitude or longitude is out of range')
         if (value >= edges[i]) and (value <= edges[i+1]):
             return i
 
+def get_center_index_2(value, start, end, step):
+    """ Get index of specific latitude or longitude.
 
+    Parameters
+    ----------
+    value : float
+        latitude or longitude
+    start : float
+        Start of edge
+    end : float
+        End of edge
+    step : float
+        grid interval
+    """
+
+    if (value < start) or (value > end):
+        print('value = {}'.format(value))
+        print('start = {}'.format(start))
+        print('end = {}'.format(end))
+        print(' - get_center_index_2: out of range')
+
+    N = round( (end - start) / step)
+
+    i = int( (value - start) / step )
+    if (i == N):
+        i = i - 1
+
+    return i
+
+def region_limit_flag(lat, lon, region_limit):
+    """ Find pixels in the *region_limit_flag*
+    (Yi Wang, 11/27/2019)
+
+    Parameters
+    ----------
+    lat : numpy array
+        Latitude array
+    lon : numpy array
+        Longitude array
+    region_limit : list-like
+        [lat_min, lon_min, lat_max, lon_max]
+
+    Returns
+    -------
+    flag : numpy logical array
+        Mark pixels in the *region_limit_flag*
+
+    """
+
+    lat_min = region_limit[0]
+    lon_min = region_limit[1]
+    lat_max = region_limit[2]
+    lon_max = region_limit[3]
+
+    flag_lat = np.logical_and(lat >= lat_min, lat <= lat_max)
+    flag_lon = np.logical_and(lon >= lon_min, lon <= lon_max)
+    flag = np.logical_and(flag_lat, flag_lon)
+
+    return flag
