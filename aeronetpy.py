@@ -118,7 +118,9 @@ def convertGergDay(jnd,outputformat = 'yyyy-mm-dd'):
     return GregDay
 
 #----------------------------------------------------------------------------
-def readAeronet(filename, vars, span = [], JDNon = True, outputformat = 'yyyy-mm-dd', keyword = 'Date(dd:mm:yyyy)' ):
+def readAeronet(filename, vars, span = [], JDNon = True, 
+        outputformat = 'yyyy-mm-dd', keyword = 'Date(dd:mm:yyyy)',
+        na_values=[-999]):
 	'''
 	Fucntion to read the Aeronet files
 	Input:
@@ -135,9 +137,9 @@ def readAeronet(filename, vars, span = [], JDNon = True, outputformat = 'yyyy-mm
 
 	#use the Date(dd:mm:yyyy) item to detect the header line
 	print('  - Readig: ', filename)
-	headernames, count_header =  exploreAeronet(filename, keyword)
-	data = pd.read_csv(filename, header = count_header, na_values =[-999])
-
+	headernames, count_header =  exploreAeronet(filename, keyword, 
+           na_values=na_values)
+	data = pd.read_csv(filename, header = count_header)
 
 	if len(span) == 1:     
 		index = data.index[data[keyword] == span[0]].tolist()
@@ -165,9 +167,6 @@ def readAeronet(filename, vars, span = [], JDNon = True, outputformat = 'yyyy-mm
 		print('  Warning: ' + warningVar + ' is(are) not in the list...')
 		
 		return headernames
-
-
-	exploreAeronet(filename, keyword = 'Date(dd:mm:yyyy)')
  
 	output = {}   
 
@@ -209,7 +208,7 @@ def readAeronet(filename, vars, span = [], JDNon = True, outputformat = 'yyyy-mm
 	return output
 
 #----------------------------------------------------------------------------
-def exploreAeronet(filename, keyword = 'Date(dd:mm:yyyy)'): 
+def exploreAeronet(filename, keyword = 'Date(dd:mm:yyyy)', na_values=[-999]): 
 	import numpy as np 
 	import pandas as pd
     #use the Date(dd:mm:yyyy) item to detect the header line
@@ -220,7 +219,7 @@ def exploreAeronet(filename, keyword = 'Date(dd:mm:yyyy)'):
 			data = f.readline()
 			count_header = count_header + 1
 	#read file
-	data = pd.read_csv(filename, header = count_header, na_values =[-999])
+	data = pd.read_csv(filename, header = count_header, na_values=na_values)
 	 
 	validItem = []
 	for item in data:
