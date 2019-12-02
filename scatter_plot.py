@@ -82,6 +82,8 @@ def scatter(ax, in_x_data, in_y_data, \
     n_colocations = len(mask[mask==True])
     x_data = x_data[mask]
     y_data = y_data[mask]
+    if n_colocations == 0:
+        return
     
     # liner regression
     slope, intercept, correlation, p_value_slope, std_error = \

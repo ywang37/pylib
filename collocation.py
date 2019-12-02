@@ -52,7 +52,7 @@ def find_aeronet_granule(sat_lat, sat_lon, aeronet_site):
 
     return out_data
 
-def colocate_site_satellite(site_TAI93, site_var, site_lat, site_lon,
+def collocate_site_satellite(site_TAI93, site_var, site_lat, site_lon,
         sat_TAI93, sat_lat, sat_lon, sat_var_dict, diameter=50.0,
         window=None, sat_var_min=-0.05):
     """ Calculate satellite overpass time, then calculate aeronet
@@ -223,15 +223,137 @@ def colocate_site_satellite(site_TAI93, site_var, site_lat, site_lon,
 
     return TAI93, (site_ave, site_N), sat_result
 
-def save_colocation_to_dict(colocation_result, TAI93, site_var, site_var_N,
-        sat_result, lat, lon, site_name, site_var_name='site_aod550', 
-        site_var_N_name='site_aod550_N'):
-    """ Save colocation to dictionary
+def collocate_line_satellite(ori_line_TAI93, ori_line_var, 
+        ori_line_lat, ori_line_lon,
+        sat_TAI93, sat_lat, sat_lon, sat_var_dict,
+        collocation_result, name,
+        obs_var_name='man_aod550', obs_var_N_name='man_aod550_N',
+        diameter=50.0, window=None, sat_var_min=-0.05,
+        ):
+    """ Collocate "line" (For example, ship) observations 
+    with satellite retrievals.
+    (Yi Wang, 12/01/2019)
 
     Parameters
     ----------
-    colocation_result : dict
-        colocation_result[site_name] = {
+    ori_line_TAI93 : 1-D array, float
+        "Line" observational time. Seconds since 1993-01-01T00:00:00
+    ori_line_var : 1-D array, float
+        "Line" measurements. It has same dimension as ori_line_TAI93
+    ori_line_lat : float
+        "Line" latitude
+    ori_line_lon : float
+        "Line" longitude
+    sat_TAI93 : array, float
+        Satellite observational time. Seconds since 1993-01-01T00:00:00
+    sat_lat : array, float
+        Satellite latitude
+    sat_lon : array, float
+        Satellite longitude
+    sat_var_dict : dict
+        The vaules are satellite variables.
+    collocation_result : dict
+        collocation_result parameter for save_collocation_to_dict
+    name : str
+        site_name parameter for save_collocation_to_dict
+    obs_var_name : str
+        site_var_name parameter for save_collocation_to_dict
+    obs_var_N_name : str
+        site_var_N_name parameter for save_collocation_to_dict
+    diameter : float
+        Diameter of the circle that is centered at site.
+        Unit is km.
+    window : float
+        Time window used for calculate average. Unit is second.
+        If its vaule is None, the vaule is assigned to
+        (diameter / 50.0) * 3600.0
+    sat_var_min : float
+        Satellite variable that is less then *sat_var_min* is
+        undefined.
+
+    Returns
+    -------
+    out_dict : dict
+        key1: 'collocated' (logical)
+        key2: 'collocation_result' (dict), if collocated is T.
+        *collocation_result* is also modified
+
+    """
+
+    out_dict = {}
+
+    # Time window
+    # Average wind speed is 50 km/h or 50 km per 3600 seconds.
+    if window is None:
+        window = (diameter / 50.0) * 3600.0
+
+    # half time window
+    half_window = window / 2.0
+
+    # As we can only determine the range of of referece TAI93,
+    # we rougthly estimate TAI_beg and TAI_end
+    sat_sec_range = np.max(sat_TAI93) - np.min(sat_TAI93)
+    sat_sec_mean = np.mean(sat_TAI93)
+    TAI_beg = sat_sec_mean - half_window - sat_sec_range
+    TAI_end = sat_sec_mean + half_window + sat_sec_range
+
+    # get a subset accroding to TAI93 
+    flag = np.logical_and(ori_line_TAI93>=TAI_beg, ori_line_TAI93<=TAI_end)
+    if np.sum(flag) > 0:
+        line_TAI93 = ori_line_TAI93[flag]
+        line_var   = ori_line_var[flag]
+        line_lat   = ori_line_lat[flag]
+        line_lon   = ori_line_lon[flag]
+    else:
+        out_dict['collocated'] = False
+        return out_dict
+
+    # collocate and save
+    for i in range(len(line_TAI93)):
+        one_line_TAI93 = np.array([line_TAI93[i]])
+        one_line_var   = np.array([line_var[i]])
+        one_line_lat   = line_lat[i]
+        one_line_lon   = line_lon[i]
+        # collocate
+        TAI93, (site_ave, site_N), sat_result = \
+                collocate_site_satellite(one_line_TAI93, one_line_var,
+                        one_line_lat, one_line_lon,
+                        sat_TAI93, sat_lat, sat_lon, sat_var_dict,
+                        diameter=diameter, window=window,
+                        sat_var_min=sat_var_min)
+
+        # save data to dictionary 
+        sat_flag = False
+        for sat_key in sat_result:
+            if sat_result[sat_key][1] > 0:
+                # at least one satellite variable
+                sat_flag = True
+        if (TAI93 is not None) and (site_ave is not None) and sat_flag:
+
+            save_collocation_to_dict(
+                    collocation_result, TAI93, site_ave, site_N,
+                    sat_result, one_line_lat, one_line_lon, name,
+                    site_var_name=obs_var_name,
+                    site_var_N_name=obs_var_N_name
+                    )
+
+            out_dict['collocated'] = True
+            out_dict['collocation_result'] = collocation_result
+
+    return out_dict
+
+
+
+
+def save_collocation_to_dict(collocation_result, TAI93, site_var, site_var_N,
+        sat_result, lat, lon, site_name, site_var_name='site_aod550', 
+        site_var_N_name='site_aod550_N'):
+    """ Save collocation to dictionary
+
+    Parameters
+    ----------
+    collocation_result : dict
+        collocation_result[site_name] = {
                 'ymd'   : [],
                 'hms'   : [],
                 'TAI93' : [],
@@ -257,23 +379,23 @@ def save_colocation_to_dict(colocation_result, TAI93, site_var, site_var_N,
     hms = str(curr_time).split()[1]
 
     # ymd, hms, and TAI93
-    colocation_result[site_name]['ymd'].append(ymd)
-    colocation_result[site_name]['hms'].append(hms)
-    colocation_result[site_name]['TAI93'].append(TAI93)
+    collocation_result[site_name]['ymd'].append(ymd)
+    collocation_result[site_name]['hms'].append(hms)
+    collocation_result[site_name]['TAI93'].append(TAI93)
 
     # site_var, site_var_N
-    colocation_result[site_name][site_var_name].append(site_var)
-    colocation_result[site_name][site_var_N_name].append(site_var_N)
+    collocation_result[site_name][site_var_name].append(site_var)
+    collocation_result[site_name][site_var_N_name].append(site_var_N)
 
     # sat_result
     for key in sat_result:
         sat_var   = sat_result[key][0]
         sat_var_N = sat_result[key][1]
-        colocation_result[site_name][key].append(sat_var)
-        colocation_result[site_name][key+'_N'].append(sat_var_N)
+        collocation_result[site_name][key].append(sat_var)
+        collocation_result[site_name][key+'_N'].append(sat_var_N)
 
     # lat and lon
-    colocation_result[site_name]['lat'].append(lat)
-    colocation_result[site_name]['lon'].append(lon)
+    collocation_result[site_name]['lat'].append(lat)
+    collocation_result[site_name]['lon'].append(lon)
 
     return None
