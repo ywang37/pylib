@@ -303,7 +303,7 @@ def scatter(ax, X, Y,
 #------------------------------------------------------------------------------
 #
 
-def plot_polygon(ax, corner_lat, corner_lon, title=None, **kwargs):
+def plot_polygon(ax, corner_lat, corner_lon, **kwargs):
     """ Plot satellite granule contour
 
     Parameters
@@ -313,8 +313,6 @@ def plot_polygon(ax, corner_lat, corner_lon, title=None, **kwargs):
         Corner latitudes
     corner_lon : array-like, shape (n_points,)
         Corner longitudes
-    title : str
-        Title label
 
     """
 
@@ -339,7 +337,7 @@ def cartopy_plot(*args, ax=None, fig=None,
         reader=None, reader_prop={},
         xtick=None,
         ytick=None,
-        cl_res='110m',
+        cl_res=None,
         region_limit=None,
         valid_min=None, valid_max=None,
         cbar=True, cbar_prop = {},
@@ -416,6 +414,10 @@ def cartopy_plot(*args, ax=None, fig=None,
         lat = copy.deepcopy(args[1])
         var = copy.deepcopy(args[2])
 
+    # coastline resolution
+    if cl_res is None:
+        cl_res='110m'
+
     # GeoAxes
     if ax is None:
         if fig is None:
@@ -433,6 +435,11 @@ def cartopy_plot(*args, ax=None, fig=None,
 
     out_dict['ax'] = ax
     out_dict['fig'] = fig
+
+    # plot true color image
+    if (var.ndim == 3) and (len(args) == 3):
+        pcolormesh(ax, lon, lat, var)
+        return
 
     # calculate edge or not
     if lat.shape == var.shape:
