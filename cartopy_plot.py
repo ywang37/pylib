@@ -96,7 +96,7 @@ def add_geoaxes(fig, *args,
 #
 
 def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None, 
-        cmap=None, bad_c='grey', bad_a=1.0, 
+        cmap=None, bad_c='grey', bad_a=None, 
         enhance=True, cbar=False, cbar_prop=dict(),
         **kwargs):
     """ (1) Transfer some default parameters to pcolormesh.
@@ -152,7 +152,8 @@ def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None,
         if cmap is None:
             cmap = plt.get_cmap('rainbow')
         # The color that represents masked values
-        cmap.set_bad(bad_c, alpha=bad_a)
+        if bad_c is not None:
+            cmap.set_bad(color=bad_c, alpha=bad_a)
    
         mesh = ax.pcolormesh(X, Y, C_ma, cmap=copy.deepcopy(cmap), 
                 transform=ccrs.PlateCarree(),

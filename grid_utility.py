@@ -123,3 +123,52 @@ def region_limit_flag(lat, lon, region_limit):
     flag = np.logical_and(flag_lat, flag_lon)
 
     return flag
+
+def generate_grid_gc_2x25():
+    """
+    """
+
+    # resolution
+    dlat = 2.0
+    dlon = 2.5
+
+    # latitude edge
+    lat_e     = np.arange(  -91.0,   91.0001, dlat)
+    lat_e[0]  = -90.0
+    lat_e[-1] = 90.0
+
+    # longitude edge
+    lon_e = np.arange(-181.25, 178.7501, dlon)
+
+    # latitude center
+    lat_c = (lat_e[0:-1] + lat_e[1:]) / 2.0
+
+    # longitude center
+    lon_c = (lon_e[0:-1] + lon_e[1:]) / 2.0
+
+    return lat_e, lon_e, lat_c, lon_c
+
+def get_index_gc_2x25(lat, lon, lat_e, lon_e):
+    """
+    """
+
+    # latitude
+    if (lat < -90.0) or (lat > 90.0):
+        print('get_index_2x25 error: latitue = {} is out of range.'.format(lat))
+        exit()
+
+    i = np.sum(lat_e <= lat) - 1
+    if lat == 90.0:
+        i = 90
+
+    # longitude
+    if (lon < -180.0) or (lon > 180.0):
+        print('get_index_2x25 error: longitude = {} is out of range.'.format(lon))
+        exit()
+
+    if (lon <= 180.0) and (lon >= 178.75):
+        j = 0
+    else:
+        j = np.sum(lon_e <= lon) - 1
+
+    return i, j
