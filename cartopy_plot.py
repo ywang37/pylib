@@ -23,6 +23,7 @@ def add_geoaxes(fig, *args,
         dateline_direction_label=False, number_format='g',
         degree_symbol=u'\u00B0', 
         cl_res='110m',
+        lw=None,
         title=None,
         **kwargs):
     """ Add a GeoAxes instance to Figure (fig) instance.
@@ -68,7 +69,7 @@ def add_geoaxes(fig, *args,
 
     ax = fig.add_subplot(*args, **kwargs)
 
-    ax.coastlines(resolution=cl_res)
+    ax.coastlines(resolution=cl_res, lw=lw)
 
     # Tick labels
     tick_proj = ['PlateCarree', 'Mercator']
@@ -96,7 +97,7 @@ def add_geoaxes(fig, *args,
 #
 
 def pcolormesh(ax, X, Y, C, valid_min=None, valid_max=None, 
-        cmap=None, bad_c='grey', bad_a=None, 
+        cmap=None, bad_c='darkgrey', bad_a=None, 
         enhance=True, cbar=False, cbar_prop=dict(),
         **kwargs):
     """ (1) Transfer some default parameters to pcolormesh.
