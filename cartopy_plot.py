@@ -23,6 +23,7 @@ def add_geoaxes(fig, *args,
         dateline_direction_label=False, number_format='g',
         degree_symbol=u'\u00B0', 
         cl_res='110m',
+        cl_color=None,
         lw=None,
         title=None,
         **kwargs):
@@ -69,7 +70,9 @@ def add_geoaxes(fig, *args,
 
     ax = fig.add_subplot(*args, **kwargs)
 
-    ax.coastlines(resolution=cl_res, lw=lw)
+    if cl_color is None:
+        cl_color = 'black'
+    ax.coastlines(resolution=cl_res, color=cl_color, lw=lw)
 
     # Tick labels
     tick_proj = ['PlateCarree', 'Mercator']
@@ -329,6 +332,24 @@ def plot_polygon(ax, corner_lat, corner_lon, **kwargs):
     corner_lon_c[n_points] = corner_lon[0]
 
     ax.plot(corner_lon_c, corner_lat_c, transform=ccrs.Geodetic(), **kwargs)
+
+def plot_rectangle(ax, region_limit, **kwargs):
+    """ Plot a rectangle accoring to *region_limit*
+
+    Parameters
+    ----------
+    ax : GeoAxes
+    region_limit : list-like
+        [lat_min, lon_min, lat_max. lon_max]
+
+    """
+
+    corner_lat = np.array( [region_limit[0], region_limit[0], 
+            region_limit[2], region_limit[2]] )
+    corner_lon = np.array( [region_limit[1], region_limit[3], 
+            region_limit[3], region_limit[1]] )
+
+    plot_polygon(ax, corner_lat, corner_lon, **kwargs)
 
 #
 #------------------------------------------------------------------------------

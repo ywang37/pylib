@@ -6,7 +6,8 @@ Created on September 17, 2019
 
 import numpy as np
 
-def generate_grid(nlat_c, nlon_c):
+def generate_grid(nlat_c, nlon_c, 
+        lat_min=-90.0, lat_max=90.0, lon_min=-180.0, lon_max=180.0):
     """ Generate latitudes and longitudes of grid edges and centers
 
     Parameters
@@ -15,6 +16,14 @@ def generate_grid(nlat_c, nlon_c):
         # of grid box in the sourh-north direction
     n_lon_c : int
         # of grid box in the west-east direction
+    lat_min : float
+        minimum latitude
+    lat_max : float
+        maximum latitude
+    lon_min : float
+        minimum longitude
+    lon_max : float
+        maximum longitude
 
     Returns
     -------
@@ -29,11 +38,53 @@ def generate_grid(nlat_c, nlon_c):
 
     """
 
-    lat_e = np.linspace( -90.0,  90.0, num=nlat_c+1)
-    lon_e = np.linspace(-180.0, 180.0, num=nlon_c+1)
+    lat_e = np.linspace(lat_min, lat_max, num=nlat_c+1)
+    lon_e = np.linspace(lon_min, lon_max, num=nlon_c+1)
 
     lat_c = (lat_e[0:-1] + lat_e[1:]) * 0.5
     lon_c = (lon_e[0:-1] + lon_e[1:]) * 0.5
+
+    return lat_e, lon_e, lat_c, lon_c
+
+def generate_grid_2(lat_res, lat_min, lat_max,
+        lon_res, lon_min, lon_max):
+    """ Generate latitudes and longitudes of grid edges and centers
+    
+    Parameters
+    ----------
+    lat_res : float
+        latitude resolution
+    lon_res : float
+        longitude resolution
+    lat_min : float
+        minimum latitude
+    lat_max : float
+        maximum latitude
+    lon_min : float
+        minimum longitude
+    lon_max : float
+        maximum longitude
+
+    Returns
+    -------
+    lat_e : 1D numpy array
+        latidue edges
+    lon_e : 1D numpy array
+        longitude edges
+    lat_c : 1D numpy array
+        latitude edges
+    lon_c : 1D numpy array
+        longitude edges
+        
+    """
+
+    nlat_c = round( (lat_max - lat_min) / lat_res)
+    nlon_c = round( (lon_max - lon_min) / lon_res)
+
+    lat_e, lon_e, lat_c, lon_c = \
+            generate_grid(nlat_c, nlon_c,
+                    lat_min=lat_min, lat_max=lat_max, 
+                    lon_min=lon_min, lon_max=lon_max)
 
     return lat_e, lon_e, lat_c, lon_c
 
