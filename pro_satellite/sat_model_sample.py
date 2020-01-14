@@ -4,13 +4,14 @@ Created on January 08, 2020
 @author: Yi Wang
 """
 
+import numpy as np
 from tqdm import tqdm
 
 from mylib.grid_utility import generate_grid_2, get_center_index_2
 from mylib.interpolate.interpolate import linear_interp_weight
 
 def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
-        sat_lat, sat_lon, sat_TAI93, sat_var_dict,
+        sat_lat, sat_lon, sat_TAI93, sat_obs_dict,
         mod_flag=None, sat_flag=None,
         ):
     """ Sample model results according satellite observations
@@ -21,7 +22,7 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
     mod_coord_dict : dict
         *coord_format* is a compulsory key. Its vaule can be
         'ses', ......
-        'ses' means starting point, ending point, and step
+        'ses' means Starting point, Ending point, and Step
             are given. Keys are 'lat_start', 'lat_end',
             'lat_step', 'lon_start', 'lon_end' and 'lon_step'
     mod_TAI93 : 1-D numpy array
@@ -112,19 +113,19 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
 
         mod_var_shape = mod_var_dict[mod_var_name].shape
 
-        if ( mod_var_shape[0] != mod_TAI93.ndim ):
+        if ( mod_var_shape[0] != mod_TAI93.shape[0] ):
             print(' - sat_model_sample: ' + mod_var_name + \
                     ' time is inconsistent ' + \
                     'with that in mod_TAI93.')
             print('mod_TAI93: ')
             print(mod_TAI93)
-            print('mod_TAI93.ndim: {}'.format(mod_TAI93.ndim))
+            print('mod_TAI93.shape[0]: {}'.format(mod_TAI93.shape[0]))
             print(mod_var_name + \
-                    '.shape[0]: {}'.format(mod_var_name.shape[0]))
+                    '.shape[0]: {}'.format(mod_var_shape[0]))
             exit()
 
         if ( (mod_var_shape[1] != mod_n_lat) or \
-                (mod_n_lat[2] != mod_n_lon) ):
+                (mod_var_shape[2] != mod_n_lon) ):
             print(' - sat_model_sample: ' + mod_var_name  + \
                     ' grid is inconsistent ' + \
                     'with the dimension of model variable.')
@@ -160,9 +161,13 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
 
     # mod_TAI93
     mod_TAI93_start = mod_TAI93[0]
-    mod_TAI93_end   = mod_TAI93[1]
+    mod_TAI93_end   = mod_TAI93[-1]
     mod_n_time      = len(mod_TAI93)
     mod_sec_step    = (mod_TAI93_end - mod_TAI93_start) / (mod_n_time - 1)
+    print(mod_TAI93_start)
+    print(mod_TAI93_end)
+    print(mod_n_time)
+    print(mod_sec_step)
 
     # arrays that are used to save resmampled model variables
     # in the model grid
@@ -241,10 +246,13 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
 
             # determine the indexes of mod_TAI93, so satelite time
             # is within the corresponding model time
-            ind_1 = int( (sat_TAI93[sat_i,sat_j] - mod_TAI93_start) / step )
+            ind_1 = int( (sat_TAI93[sat_i,sat_j] - mod_TAI93_start) 
+                    / mod_sec_step )
             if (ind_1 == mod_n_time):
                 ind_1 = ind_1 - 1
             ind_2 = ind_1 + 1
+            #print(ind_1, mod_TAI93[ind_1])
+            #print(ind_2, mod_TAI93[ind_2])
             if not ((sat_TAI93[sat_i,sat_j] >= mod_TAI93[ind_1]) or
                     (sat_TAI93[sat_i,sat_j] <= mod_TAI93[ind_2])):
                 print(' - sat_model_sample: error')
@@ -281,22 +289,6 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
                 # save satellite data like station data
                 sat_1D.append(sat_obs[sat_i,sat_j])
 
-            # average of satellite data at model grid
-            for sat_obs_name in sat_obs_name_list:
-
-                sat_grid     = sat_grid_dict[sat_obs_name]
-                sat_grid_num = sat_grid_num_dict[sat_obs_name]
-
-                # broadcast
-                sat_grid_num_full = np.broadcast_to(sat_grid_num.T,
-                        sat_grid.shape[::-1])
-                sat_grid_num_full = sat_grid_num_full.T
-
-                # average 
-                sat_grid_flag = (sat_grid_num_full > 0)
-                sat_grid[sat_grid_flag] /= sat_grid_num_full[sat_grid_flag]
-                sat_grid[np.logical_not(sat_grid_flag)] = np.nan
-
             # resample model variables according to satellite
             # overpass time
             for mod_var_name in mod_var_name_list:
@@ -312,10 +304,12 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
                 mod_var_2 = mod_var[ind_2,mod_i,mod_j]
 
                 # linear interpolation weight
+                x  = sat_TAI93[sat_i,sat_j]
+                x1 = mod_TAI93[ind_1]
+                x2 = mod_TAI93[ind_2]
                 weight = linear_interp_weight(x, x1, x2)
-                print(x, x1, x2)
-                print(weight)
-                exit()
+                #print(x, x1, x2)
+                #print(weight)
 
                 # linear interpolation
                 mod_var_interp = \
@@ -328,23 +322,41 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
                 mod_grid_num[mod_i,mod_j] += 1
 
                 # save resampled model variables like station data
-                mod_1D.append[mod_var_interp] = mod_var_interp
+                mod_1D.append(mod_var_interp)
 
-            # average of resampled model variables at model grid
-            for mod_var_name in mod_var_name_list:
+    # average of satellite data at model grid
+    for sat_obs_name in sat_obs_name_list:
 
-                mod_grid     = mod_grid_dict[mod_obs_name]
-                mod_grid_num = mod_grid_num_dict[mod_obs_name]
+        sat_grid     = sat_grid_dict[sat_obs_name]
+        sat_grid_num = sat_grid_num_dict[sat_obs_name]
 
-                # broadcast
-                mod_grid_num_full = np.broadcast_to(mod_grid_num.T,
-                        mod_grid.shape[::-1])
-                mod_grid_num_full = mod_grid_num_full.T
+        # broadcast
+        sat_grid_num_full = np.broadcast_to(sat_grid_num.T,
+                sat_grid.shape[::-1])
+        sat_grid_num_full = sat_grid_num_full.T
+        print('test')
+        print()
 
-                # average 
-                mod_grid_flag = (mod_grid_num_full > 0)
-                mod_grid[mod_grid_flag] /= mod_grid_num_full[mod_grid_flag]
-                mod_grid[np.logical_not(mod_grid_flag)] = np.nan
+        # average 
+        sat_grid_flag = (sat_grid_num_full > 0)
+        sat_grid[sat_grid_flag] /= sat_grid_num_full[sat_grid_flag]
+        sat_grid[np.logical_not(sat_grid_flag)] = np.nan
+
+    # average of resampled model variables at model grid
+    for mod_var_name in mod_var_name_list:
+
+        mod_grid     = mod_grid_dict[mod_var_name]
+        mod_grid_num = mod_grid_num_dict[mod_var_name]
+
+        # broadcast
+        mod_grid_num_full = np.broadcast_to(mod_grid_num.T,
+                mod_grid.shape[::-1])
+        mod_grid_num_full = mod_grid_num_full.T
+
+        # average 
+        mod_grid_flag = (mod_grid_num_full > 0)
+        mod_grid[mod_grid_flag] /= mod_grid_num_full[mod_grid_flag]
+        mod_grid[np.logical_not(mod_grid_flag)] = np.nan
 
     out_dict['sat_grid_dict']     = sat_grid_dict
     out_dict['sat_grid_num_dict'] = sat_grid_num_dict

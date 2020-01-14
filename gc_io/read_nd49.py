@@ -4,8 +4,6 @@ Created on January 13, 2020
 @author: Yi Wang
 """
 
-from astropy.time import Time
-from astropy.time import TimeDelta
 import datetime
 import numpy as np
 import os
