@@ -4,6 +4,7 @@ Created on January 08, 2020
 @author: Yi Wang
 """
 
+from netCDF4 import Dataset
 import numpy as np
 from tqdm import tqdm
 
@@ -342,6 +343,9 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         sat_grid[sat_grid_flag] /= sat_grid_num_full[sat_grid_flag]
         sat_grid[np.logical_not(sat_grid_flag)] = np.nan
 
+        # just convert list to array
+        sat_1D_dict[sat_obs_name] = np.array(sat_1D_dict[sat_obs_name])
+
     # average of resampled model variables at model grid
     for mod_var_name in mod_var_name_list:
 
@@ -358,11 +362,256 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         mod_grid[mod_grid_flag] /= mod_grid_num_full[mod_grid_flag]
         mod_grid[np.logical_not(mod_grid_flag)] = np.nan
 
+        # just convert list to array
+        mod_1D_dict[mod_var_name] = np.array(mod_1D_dict[mod_var_name])
+
+
+    # lat and lon index
+    lat_ind_1D = np.array(lat_ind_1D)
+    lon_ind_1D = np.array(lon_ind_1D)
+    ind_1D_dict = {}
+    ind_1D_dict['lat_ind_1D'] = lat_ind_1D
+    ind_1D_dict['lon_ind_1D'] = lon_ind_1D
+
+
+    # save data to dictionary
     out_dict['sat_grid_dict']     = sat_grid_dict
     out_dict['sat_grid_num_dict'] = sat_grid_num_dict
     out_dict['sat_1D_dict']       = sat_1D_dict
-    out_dict['mod_grid_dict']     = sat_grid_dict
-    out_dict['mod_grid_num_dict'] = sat_grid_num_dict
-    out_dict['mod_1D_dict']       = sat_1D_dict
+    out_dict['mod_grid_dict']     = mod_grid_dict
+    out_dict['mod_grid_num_dict'] = mod_grid_num_dict
+    out_dict['mod_1D_dict']       = mod_1D_dict
+    out_dict['ind_1D_dict']       = ind_1D_dict
 
     return out_dict
+
+def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
+        verbose=True):
+    """ Save dict returned from sat_model_sample. Model latitude and
+    longitude information is also added to the dict before call the
+    function.
+
+    Parameters
+    ----------
+    filename : str
+        netCDF file to save data.
+    data_dict : dict
+        Dictionary returned from sat_model_sample.  Model latitude and
+        longitude information is also added to the dictionary
+    save_2D : logical (default True)
+        Save data in grid
+    save_1D : logical (default True)
+        Save data as station data
+
+    Returns
+    -------
+    No returns
+
+    """
+
+    # get data
+    sat_grid_dict     = data_dict['sat_grid_dict']
+    sat_grid_num_dict = data_dict['sat_grid_num_dict']
+    sat_1D_dict       = data_dict['sat_1D_dict']
+    mod_grid_dict     = data_dict['mod_grid_dict']
+    mod_grid_num_dict = data_dict['mod_grid_num_dict']
+    mod_1D_dict       = data_dict['mod_1D_dict']
+    ind_1D_dict       = data_dict['ind_1D_dict']
+
+    mod_var_name_list = list(mod_grid_dict.keys())
+    mod_var_name_list.sort()
+    sat_obs_name_list = list(sat_grid_dict.keys())
+    sat_obs_name_list.sort()
+
+    if verbose:
+        print(' - save_sat_model_sample: output ' + filename)
+
+    # open file
+    nc_f = Dataset(filename, 'w')
+
+    # find if model variables have vertical dimension
+    n_mod_lev = 1
+    for mod_var_name in mod_var_name_list:
+        if mod_grid_dict[mod_var_name].ndim == 3:
+            n_mod_lev = mod_grid_dict[mod_var_name].shape[2]
+            break
+
+    # find if satellite observation have vertical dimension
+    n_sat_lev = 1
+    for sat_obs_name in sat_obs_name_list:
+        if sat_grid_dict[sat_obs_name].ndim == 3:
+            n_sat_lev = sat_grid_dict[sat_obs_name].shape[2]
+
+    # fine if satellite observations have vertical dimension
+
+    # grid, _e means edge
+    Latitude    = data_dict['Latitude']
+    Longitude   = data_dict['Longitude']
+    Latitude_e  = data_dict['Latitude_e']
+    Longitude_e = data_dict['Longitude_e']
+
+    # Dimensions of a netCDF file
+    if save_2D:
+        dim_lat = nc_f.createDimension('Latitude',  Latitude.shape[0])
+        dim_lon = nc_f.createDimension('Longitude', Latitude.shape[1])
+        dim_lat_e = nc_f.createDimension('Latitude_e',  Latitude_e.shape[0])
+        dim_lon_e = nc_f.createDimension('Longitude_e', Latitude_e.shape[1])
+    
+    if save_1D:
+        for sat_var_name in sat_1D_dict:
+            n_grid = sat_1D_dict[sat_var_name].shape[0]
+            break
+        dim_1D = nc_f.createDimension('grid', n_grid)
+
+    if n_mod_lev > 1:
+        dim_mod_lev = nc_f.createDimension('mod_lev', n_mod_lev)
+
+    if n_sat_lev > 1:
+        dim_sat_lev = nc_f.createDimension('sat_lev', n_sat_lev)
+
+    # create variables in a netCDF file
+    if save_2D:
+        # lat and lon
+        Latitude_v = nc_f.createVariable('Latitude', 'f4', 
+                ('Latitude', 'Longitude'))
+        Longitude_v = nc_f.createVariable('Longitude', 'f4',
+                ('Latitude', 'Longitude'))
+        Latitude_e_v = nc_f.createVariable('Latitude_e', 'f4', 
+                ('Latitude_e', 'Longitude_e'))
+        Longitude_e_v = nc_f.createVariable('Longitude_e', 'f4', 
+                ('Latitude_e', 'Longitude_e'))
+        # model variables
+        nc_var_mod_grid_dict     = {}
+        nc_var_mod_grid_num_dict = {}
+        for mod_var_name in mod_var_name_list:
+            mod_grid     = mod_grid_dict[mod_var_name]
+            mod_grid_num = mod_grid_num_dict[mod_var_name]
+            if mod_grid.ndim == 2:
+                nc_var_mod_grid = \
+                        nc_f.createVariable('mod_'+mod_var_name, 'f4',
+                                ('Latitude', 'Longitude'))
+            elif mod_grid.ndim == 3:
+                nc_var_mod_grid = \
+                        nc_f.createVariable('mod_'+mod_var_name, 'f4',
+                                ('Latitude', 'Longitude', 'mod_lev'))
+            else:
+                print(' - save_sat_model_sample: mod_grid variable ' + 
+                        mod_var_name + 
+                        'has {} dimensions.'.format(mod_grid.ndim))
+                exit()
+            nc_var_mod_grid_num = \
+                    nc_f.createVariable('mod_'+mod_var_name+'_num', 'f4',
+                            ('Latitude', 'Longitude'))
+            nc_var_mod_grid_dict[mod_var_name]     = nc_var_mod_grid
+            nc_var_mod_grid_num_dict[mod_var_name] = nc_var_mod_grid_num
+        # satellite observations
+        nc_var_sat_grid_dict     = {}
+        nc_var_sat_grid_num_dict = {}
+        for sat_obs_name in sat_obs_name_list:
+            sat_grid     = sat_grid_dict[sat_obs_name]
+            sat_grid_num = sat_grid_num_dict[sat_obs_name]
+            if sat_grid.ndim == 2:
+                nc_var_sat_grid = \
+                        nc_f.createVariable('sat_'+sat_obs_name, 'f4',
+                                ('Latitude', 'Longitude'))
+            elif sat_grid.ndim == 3:
+                nc_var_sat_grid = \
+                        nc_f.createVariable('sat_'+sat_obs_name, 'f4',
+                                ('Latitude', 'Longitude', 'sat_lev'))
+            else:
+                print(' - save_sat_model_sample: sat_grid variable ' + 
+                        sat_obs_name + 
+                        'has {} dimensions.'.format(sat_grid.ndim))
+                exit()
+            nc_var_sat_grid_num = \
+                    nc_f.createVariable('sat_'+sat_obs_name+'_num', 'f4',
+                            ('Latitude', 'Longitude'))
+            nc_var_sat_grid_dict[sat_obs_name]     = nc_var_sat_grid
+            nc_var_sat_grid_num_dict[sat_obs_name] = nc_var_sat_grid_num
+
+    if save_1D:
+        # lat and lon index (0-based)
+        lat_ind_1D_v = nc_f.createVariable('lat_ind_1D', 'int', ('grid',))
+        lon_ind_1D_v = nc_f.createVariable('lon_ind_1D', 'int', ('grid',))
+        # model variables
+        nc_var_mod_1D_dict = {}
+        for mod_var_name in mod_var_name_list:
+            mod_1D = mod_1D_dict[mod_var_name]
+            if mod_1D.ndim == 1:
+                nc_var_mod_1D = \
+                        nc_f.createVariable('mod_1D_'+mod_var_name, 'f4',
+                                ('grid',))
+            elif mod_1D.ndim == 2:
+                nc_var_mod_1D = \
+                        nc_f.createVariable('mod_1D_'+mod_var_name, 'f4',
+                                ('grid', 'mod_lev'))
+            else:
+                print(' - save_sat_model_sample: mod_1D variable ' +
+                        mod_var_name +
+                        'has {} dimensions.'.format(mod_1D.ndim))
+                exit()
+            nc_var_mod_1D_dict[mod_var_name] = nc_var_mod_1D
+        # satellite observations
+        nc_var_sat_1D_dict = {}
+        for sat_obs_name in sat_obs_name_list:
+            sat_1D = sat_1D_dict[sat_obs_name]
+            if sat_1D.ndim == 1:
+                nc_var_sat_1D = \
+                        nc_f.createVariable('sat_1D_'+sat_obs_name, 'f4',
+                                ('grid',))
+            elif sat_1D.ndim == 2:
+                nc_var_sat_1D = \
+                        nc_f.createVariable('sat_1D_'+sat_obs_name, 'f4',
+                                ('grid', 'sat_lev'))
+            else:
+                print(' - save_sat_model_sample: sat_1D variable ' +
+                        sat_obs_name +
+                        'has {} dimensions.'.format(sat_1D.ndim))
+                exit()
+            nc_var_sat_1D_dict[sat_obs_name] = nc_var_sat_1D
+
+    # write variables
+    if save_2D:
+        # lat and lon
+        Latitude_v[:]    = Latitude
+        Longitude_v[:]   = Longitude
+        Latitude_e_v[:]  = Latitude_e
+        Longitude_e_v[:] = Longitude_e
+        # model variables
+        for mod_var_name in mod_var_name_list:
+            # value
+            nc_var_mod_grid = nc_var_mod_grid_dict[mod_var_name]
+            mod_grid = mod_grid_dict[mod_var_name]
+            nc_var_mod_grid[:] = mod_grid
+            # number
+            nc_var_mod_grid_num = nc_var_mod_grid_num_dict[mod_var_name]
+            mod_grid_num = mod_grid_num_dict[mod_var_name]
+            nc_var_mod_grid_num[:] = mod_grid_num
+        # satellite observations
+        for sat_obs_name in sat_obs_name_list:
+            # value
+            nc_var_sat_grid = nc_var_sat_grid_dict[sat_obs_name]
+            sat_grid = sat_grid_dict[sat_obs_name]
+            nc_var_sat_grid[:] = sat_grid
+            # number
+            nc_var_sat_grid_num = nc_var_sat_grid_num_dict[sat_obs_name]
+            sat_grid_num = sat_grid_num_dict[sat_obs_name]
+            nc_var_sat_grid_num[:] = sat_grid_num
+
+    if save_1D:
+        # lat and lon
+        lat_ind_1D_v = ind_1D_dict['lat_ind_1D']
+        lon_ind_1D_v = ind_1D_dict['lon_ind_1D']
+        # model variables
+        for mod_var_name in mod_var_name_list:
+            nc_var_mod_1D = nc_var_mod_1D_dict[mod_var_name]
+            mod_1D = mod_1D_dict[mod_var_name]
+            nc_var_mod_1D[:] = mod_1D
+        # satellite observations
+        for sat_obs_name in sat_obs_name_list:
+            nc_var_sat_1D = nc_var_sat_1D_dict[sat_obs_name]
+            sat_1D = sat_1D_dict[sat_obs_name]
+            nc_var_sat_1D[:] = sat_1D
+
+    # close file
+    nc_f.close()

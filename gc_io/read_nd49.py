@@ -36,6 +36,7 @@ def read_nd49_resample(file_list, varname_list):
     out_dict['time'] = []
 
     # read data
+    latlon_flag = True
     for i in range(len(file_list)):
 
         filename = file_list[i]
@@ -57,6 +58,14 @@ def read_nd49_resample(file_list, varname_list):
 
         # other variables
         out_dict['time'].append(np.array(infile.variables['time']))
+
+        if latlon_flag:
+            out_dict['latitude']  = np.array(infile.variables['latitude'])
+            out_dict['longitude'] = np.array(infile.variables['longitude'])
+            lat_e = np.array(infile.variables['latitude_bounds'])
+            lon_e = np.array(infile.variables['longitude_bounds'])
+            out_dict['latitude_e']  = np.append(lat_e[:,0], lat_e[-1,1])
+            out_dict['longitude_e'] = np.append(lon_e[:,0], lon_e[-1,1])
 
     # merge variables
     for varname in varname_list:
