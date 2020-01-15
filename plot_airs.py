@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from netCDF4 import Dataset
 
 from mylib.cartopy_plot import add_geoaxes, pcolormesh
-from mylib.pro_satellite import calculate_pixel_edge2
+from mylib.pro_satellite.pro_satellite import calculate_pixel_edge2
 from mylib.read_airs import read_AIRS3STD
 
 def plot_AIRS3STD_lev(in_data, varnames, levels,

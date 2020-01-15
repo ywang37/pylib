@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from mylib.io import read_nc
-from mylib.pro_satellite import calculate_pixel_edge2
-from mylib.pro_satellite import scale_image_multi_c
+from mylib.pro_satellite.pro_satellite import calculate_pixel_edge2
+from mylib.pro_satellite.pro_satellite import scale_image_multi_c
 
 #
 #------------------------------------------------------------------------------

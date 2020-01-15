@@ -9,7 +9,6 @@ __all__=[
         'plot_airs',
         'plot_utility',
         'pro_aerosol',
-        'pro_satellite',
         'read_airs',
         'read_omi',
         'read_modis',
