@@ -57,10 +57,8 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
     out_dict : dict
         keys
         'sat_grid_dict'
-        'sat_grid_num_dict'
         'sat_1D_dict'
         'sat_grid_dict'
-        'sat_grid_num_dict'
         'sat_1D_dict'
 
     """
@@ -173,7 +171,6 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
     # arrays that are used to save resmampled model variables
     # in the model grid
     mod_grid_dict = {}
-    mod_grid_num_dict = {}
     mod_1D_dict = {}
     for mod_var_name in mod_var_name_list:
 
@@ -184,10 +181,6 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         mod_grid = np.zeros(mod_grid_shape, dtype=float)
         mod_grid_dict[mod_var_name] = mod_grid
 
-        # number of model data
-        mod_grid_num = np.zeros(mod_grid_shape[0:2], dtype=int)
-        mod_grid_num_dict[mod_var_name] = mod_grid_num
-
         # save model data like station data
         mod_1D_dict[mod_var_name] = []
 
@@ -196,8 +189,9 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
     sat_obs_name_list = list(sat_obs_dict.keys())
     sat_obs_name_list.sort()
     sat_grid_dict = {}
-    sat_grid_num_dict = {}
     sat_1D_dict = {}
+    # number of satellite data in a grid
+    count = np.zeros((mod_n_lat,mod_n_lon), dtype=int)
     for sat_obs_name in sat_obs_name_list:
 
         sat_obs = sat_obs_dict[sat_obs_name]
@@ -212,10 +206,6 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         # satellite data
         sat_grid = np.zeros(sat_grid_shape, dtype=float)
         sat_grid_dict[sat_obs_name] = sat_grid
-
-        # number of satellite
-        sat_grid_num = np.zeros(sat_grid_shape[0:2], dtype=int)
-        sat_grid_num_dict[sat_obs_name] = sat_grid_num
 
         # save satellite data like station data 
         sat_1D_dict[sat_obs_name] = []
@@ -273,19 +263,18 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
             lat_ind_1D.append(mod_i)
             lon_ind_1D.append(mod_j)
 
+            # number of satellite data in a grid
+            count[mod_i,mod_j] += 1 
+
             # map satellite data to model grid
             for sat_obs_name in sat_obs_name_list:
 
                 sat_obs      = sat_obs_dict[sat_obs_name]
                 sat_grid     = sat_grid_dict[sat_obs_name]
-                sat_grid_num = sat_grid_num_dict[sat_obs_name]
                 sat_1D       = sat_1D_dict[sat_obs_name]
 
                 # accumulate satellite data at model grid
                 sat_grid[mod_i,mod_j] += sat_obs[sat_i,sat_j]
-
-                # count satellite data at model grid
-                sat_grid_num[mod_i,mod_j] += 1
 
                 # save satellite data like station data
                 sat_1D.append(sat_obs[sat_i,sat_j])
@@ -296,7 +285,6 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
 
                 mod_var      = mod_var_dict[mod_var_name]
                 mod_grid     = mod_grid_dict[mod_var_name]
-                mod_grid_num = mod_grid_num_dict[mod_var_name]
                 mod_1D       = mod_1D_dict[mod_var_name]
 
                 # The closest model variables that are before
@@ -319,9 +307,6 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
                 # accumulte resampled model variables at model grid
                 mod_grid[mod_i,mod_j] += mod_var_interp
 
-                # count resampled model variables at model grid
-                mod_grid_num[mod_i,mod_j] += 1
-
                 # save resampled model variables like station data
                 mod_1D.append(mod_var_interp)
 
@@ -329,7 +314,7 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
     for sat_obs_name in sat_obs_name_list:
 
         sat_grid     = sat_grid_dict[sat_obs_name]
-        sat_grid_num = sat_grid_num_dict[sat_obs_name]
+        sat_grid_num = count
 
         # broadcast
         sat_grid_num_full = np.broadcast_to(sat_grid_num.T,
@@ -350,7 +335,8 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
     for mod_var_name in mod_var_name_list:
 
         mod_grid     = mod_grid_dict[mod_var_name]
-        mod_grid_num = mod_grid_num_dict[mod_var_name]
+        # numbers of mods and sats in a grid are same
+        mod_grid_num = count
 
         # broadcast
         mod_grid_num_full = np.broadcast_to(mod_grid_num.T,
@@ -376,12 +362,11 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
 
     # save data to dictionary
     out_dict['sat_grid_dict']     = sat_grid_dict
-    out_dict['sat_grid_num_dict'] = sat_grid_num_dict
     out_dict['sat_1D_dict']       = sat_1D_dict
     out_dict['mod_grid_dict']     = mod_grid_dict
-    out_dict['mod_grid_num_dict'] = mod_grid_num_dict
     out_dict['mod_1D_dict']       = mod_1D_dict
     out_dict['ind_1D_dict']       = ind_1D_dict
+    out_dict['count']             = count
 
     return out_dict
 
@@ -411,12 +396,11 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
 
     # get data
     sat_grid_dict     = data_dict['sat_grid_dict']
-    sat_grid_num_dict = data_dict['sat_grid_num_dict']
     sat_1D_dict       = data_dict['sat_1D_dict']
     mod_grid_dict     = data_dict['mod_grid_dict']
-    mod_grid_num_dict = data_dict['mod_grid_num_dict']
     mod_1D_dict       = data_dict['mod_1D_dict']
     ind_1D_dict       = data_dict['ind_1D_dict']
+    count             = data_dict['count']
 
     mod_var_name_list = list(mod_grid_dict.keys())
     mod_var_name_list.sort()
@@ -480,12 +464,13 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
                 ('Latitude_e', 'Longitude_e'))
         Longitude_e_v = nc_f.createVariable('Longitude_e', 'f4', 
                 ('Latitude_e', 'Longitude_e'))
+        # count
+        nc_var_count = \
+                nc_f.createVariable('count', 'int', ('Latitude', 'Longitude'))
         # model variables
         nc_var_mod_grid_dict     = {}
-        nc_var_mod_grid_num_dict = {}
         for mod_var_name in mod_var_name_list:
             mod_grid     = mod_grid_dict[mod_var_name]
-            mod_grid_num = mod_grid_num_dict[mod_var_name]
             if mod_grid.ndim == 2:
                 nc_var_mod_grid = \
                         nc_f.createVariable('mod_'+mod_var_name, 'f4',
@@ -499,17 +484,11 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
                         mod_var_name + 
                         'has {} dimensions.'.format(mod_grid.ndim))
                 exit()
-            nc_var_mod_grid_num = \
-                    nc_f.createVariable('mod_'+mod_var_name+'_num', 'f4',
-                            ('Latitude', 'Longitude'))
             nc_var_mod_grid_dict[mod_var_name]     = nc_var_mod_grid
-            nc_var_mod_grid_num_dict[mod_var_name] = nc_var_mod_grid_num
         # satellite observations
         nc_var_sat_grid_dict     = {}
-        nc_var_sat_grid_num_dict = {}
         for sat_obs_name in sat_obs_name_list:
             sat_grid     = sat_grid_dict[sat_obs_name]
-            sat_grid_num = sat_grid_num_dict[sat_obs_name]
             if sat_grid.ndim == 2:
                 nc_var_sat_grid = \
                         nc_f.createVariable('sat_'+sat_obs_name, 'f4',
@@ -523,11 +502,7 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
                         sat_obs_name + 
                         'has {} dimensions.'.format(sat_grid.ndim))
                 exit()
-            nc_var_sat_grid_num = \
-                    nc_f.createVariable('sat_'+sat_obs_name+'_num', 'f4',
-                            ('Latitude', 'Longitude'))
             nc_var_sat_grid_dict[sat_obs_name]     = nc_var_sat_grid
-            nc_var_sat_grid_num_dict[sat_obs_name] = nc_var_sat_grid_num
 
     if save_1D:
         # lat and lon index (0-based)
@@ -577,26 +552,18 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
         Longitude_v[:]   = Longitude
         Latitude_e_v[:]  = Latitude_e
         Longitude_e_v[:] = Longitude_e
+        # count
+        nc_var_count[:] = count
         # model variables
         for mod_var_name in mod_var_name_list:
-            # value
             nc_var_mod_grid = nc_var_mod_grid_dict[mod_var_name]
             mod_grid = mod_grid_dict[mod_var_name]
             nc_var_mod_grid[:] = mod_grid
-            # number
-            nc_var_mod_grid_num = nc_var_mod_grid_num_dict[mod_var_name]
-            mod_grid_num = mod_grid_num_dict[mod_var_name]
-            nc_var_mod_grid_num[:] = mod_grid_num
         # satellite observations
         for sat_obs_name in sat_obs_name_list:
-            # value
             nc_var_sat_grid = nc_var_sat_grid_dict[sat_obs_name]
             sat_grid = sat_grid_dict[sat_obs_name]
             nc_var_sat_grid[:] = sat_grid
-            # number
-            nc_var_sat_grid_num = nc_var_sat_grid_num_dict[sat_obs_name]
-            sat_grid_num = sat_grid_num_dict[sat_obs_name]
-            nc_var_sat_grid_num[:] = sat_grid_num
 
     if save_1D:
         # lat and lon
