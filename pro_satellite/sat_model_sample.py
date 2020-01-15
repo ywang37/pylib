@@ -567,8 +567,8 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
 
     if save_1D:
         # lat and lon
-        lat_ind_1D_v = ind_1D_dict['lat_ind_1D']
-        lon_ind_1D_v = ind_1D_dict['lon_ind_1D']
+        lat_ind_1D_v[:] = ind_1D_dict['lat_ind_1D']
+        lon_ind_1D_v[:] = ind_1D_dict['lon_ind_1D']
         # model variables
         for mod_var_name in mod_var_name_list:
             nc_var_mod_1D = nc_var_mod_1D_dict[mod_var_name]
