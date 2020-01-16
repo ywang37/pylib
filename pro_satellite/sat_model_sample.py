@@ -401,6 +401,7 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
     mod_1D_dict       = data_dict['mod_1D_dict']
     ind_1D_dict       = data_dict['ind_1D_dict']
     count             = data_dict['count']
+    swp               = data_dict['sat_ScatteringWtPressure']
 
     mod_var_name_list = list(mod_grid_dict.keys())
     mod_var_name_list.sort()
@@ -453,7 +454,12 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
     if n_sat_lev > 1:
         dim_sat_lev = nc_f.createDimension('sat_lev', n_sat_lev)
 
-    # create variables in a netCDF file
+    # create variables in a netCDF filea
+
+    # ScatteringWtPressure
+    nc_var_swp = nc_f.createVariable('sat_ScatteringWtPressure', 
+            'f4', ('sat_lev', ))
+
     if save_2D:
         # lat and lon
         Latitude_v = nc_f.createVariable('Latitude', 'f4', 
@@ -546,6 +552,10 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
             nc_var_sat_1D_dict[sat_obs_name] = nc_var_sat_1D
 
     # write variables
+
+    # ScatteringWtPressure
+    nc_var_swp[:] = swp
+
     if save_2D:
         # lat and lon
         Latitude_v[:]    = Latitude

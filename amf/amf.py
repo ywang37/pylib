@@ -86,8 +86,15 @@ def SW_AK_intep_one(SW_AK, SW_AK_press, new_press):
 
     """
 
+    # fit a function
     func = interpolate.interp1d(SW_AK_press, SW_AK)
 
-    new_SW_AK = func(new_press)
+    # Avoid extrapolation.
+    tmp_new_press = np.array(new_press)
+    tmp_new_press[tmp_new_press>SW_AK_press[0]]  = SW_AK_press[0]
+    tmp_new_press[tmp_new_press<SW_AK_press[-1]] = SW_AK_press[-1]
+
+    # Interpolation
+    new_SW_AK = func(tmp_new_press)
 
     return new_SW_AK
