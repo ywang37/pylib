@@ -11,6 +11,9 @@ from tqdm import tqdm
 from mylib.grid_utility import generate_grid_2, get_center_index_2
 from mylib.interpolate.interpolate import linear_interp_weight
 
+#
+#------------------------------------------------------------------------------
+#
 def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         sat_lat, sat_lon, sat_TAI93, sat_obs_dict,
         mod_flag=None, sat_flag=None,
@@ -369,7 +372,9 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
     out_dict['count']             = count
 
     return out_dict
-
+#
+#------------------------------------------------------------------------------
+#
 def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
         verbose=True):
     """ Save dict returned from sat_model_sample. Model latitude and
@@ -592,3 +597,6 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
 
     # close file
     nc_f.close()
+#
+#------------------------------------------------------------------------------
+#

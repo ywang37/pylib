@@ -6,6 +6,9 @@ Created on Janunary 16, 2020
 
 import numpy as np
 from scipy import interpolate
+from tqdm import tqdm
+
+from mylib.model.trop import tropospheric_layer_column_one
 
 #
 #------------------------------------------------------------------------------
@@ -143,9 +146,10 @@ def AMF_trop_one(layer_val, PEdge_Bot, SW_AK, SW_AK_press, ind_l=None,
     Returns
     -------
     out_dict : dict
-       'AMF': Air mass factor if *var* is 'AMF'.
-       'VCD_AK': Vertical column density that can be compared to the
-           satellite retrieval.
+        'AMF': Air mass factor if *var* is 'AMF'.
+        'VCD_AK': Model tropospheric vertical column density that can 
+            be compared to the satellite retrieval.
+        'VCD' : Model tropospheric vertical column density 
 
     """
 
@@ -154,6 +158,7 @@ def AMF_trop_one(layer_val, PEdge_Bot, SW_AK, SW_AK_press, ind_l=None,
     # get data of species in the troposphere 
     trop_data = tropospheric_layer_column_one(layer_val, ind_l=ind_l,
             PEdge_Bot=PEdge_Bot, P_tropopause=P_tropopause, pressure=True)
+    out_dict['VCD'] = trop_data['trop_col']
 
     # Interpolate scattering weight or averaging kernel
     # to pressure of each tropospheric levels.
@@ -215,8 +220,9 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
 
     # output dict
     out_dict = {}
+    out_dict['VCD'] = np.full(dim, np.nan)
     if (var in ['AMF', 'VCD_AK']):
-        out_dict[var] = np.full_like(flag, np.nan)
+        out_dict[var] = np.full(dim, np.nan)
     else:
         print(' - AMF_trop: *var* is {}'.format(var))
         print('  *var*\'s vaule can be: ', ['AMF', 'VCD_AK'])
@@ -228,7 +234,7 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
 
 
     # iterate every grid
-    for i in range(N_grid):
+    for i in tqdm(range(N_grid)):
 
         # get index
         if (len(dim) == 1):
@@ -261,7 +267,10 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
         # calculate AMF or VCD_AK
         data_one = AMF_trop_one(layer_val, PEdge_Bot, SW_AK, SW_AK_press, 
                 ind_l=ind_l, P_tropopause=P_tropopause, var=var)
-        out_dict[var][ind] = data_one[var]
+
+        # save data
+        out_dict[var][ind]   = data_one[var]
+        out_dict['VCD'][ind] = data_one['VCD'] 
 
     return out_dict
 #
