@@ -3,6 +3,9 @@ Created on Janunary 15, 2020
 
 @author: Yi Wang
 """
+
+import numpy as np
+
 #
 #------------------------------------------------------------------------------
 #
@@ -52,6 +55,9 @@ def tropospheric_layer_column_one(layer_val, ind_l=None,
     # *PEdge_Bot* and *P_tropopause* should be given.
     if ind_l is None:
         if ( (PEdge_Bot is not None) and (P_tropopause is not None) ):
+            #print ('tropospheric_layer_column_one')
+            #print(P_tropopause)
+            #print(PEdge_Bot)
             ind_l = find_tropopause_index_one(PEdge_Bot, P_tropopause)
         else:
             print(' - tropospheric_layer_column_one: *ind_l* is {}. ' + 
@@ -123,6 +129,10 @@ def find_tropopause_index_one(PEdge_Bot, P_tropopause):
 
     """
 
+    #print('find_tropopause_index_one')
+    #print(P_tropopause)
+    #print(PEdge_Bot)
+    #exit()
     if (P_tropopause > PEdge_Bot[0]) or (P_tropopause < PEdge_Bot[-1]):
         print(' - find_tropopause_index_one: !!! ERROR !!! ' + \
                 'Tropopause pressure is out of range')

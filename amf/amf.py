@@ -156,6 +156,9 @@ def AMF_trop_one(layer_val, PEdge_Bot, SW_AK, SW_AK_press, ind_l=None,
     out_dict = {}
 
     # get data of species in the troposphere 
+#    print('AMF_trop_one')
+#    print(P_tropopause)
+#    print(PEdge_Bot)
     trop_data = tropospheric_layer_column_one(layer_val, ind_l=ind_l,
             PEdge_Bot=PEdge_Bot, P_tropopause=P_tropopause, pressure=True)
     out_dict['VCD'] = trop_data['trop_col']
@@ -242,19 +245,26 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
         elif (len(dim) == 2):
             ind = (i // dim[1], i % dim[1])
         else:
-            print(' - AMF_trop: dimension error.')
+            print(' - AMF_trop: dimension error. 1')
             exit()
 
-        print(i, ind)
-
         # only process data with flag is True
-        if (not flag[ind]):
-            pass
+        if  (not flag[ind]):
+            continue
+
 
         # prepare parameters for AMF_trop_one function.
-        layer_val = layer_val_arr[ind,:]
-        PEdge_Bot = PEdge_Bot_arr[ind,:]
-        SW_AK     = SW_AK_arr[ind, :]
+        if (len(dim) == 1):
+            layer_val = layer_val_arr[ind,:]
+            PEdge_Bot = PEdge_Bot_arr[ind,:]
+            SW_AK     = SW_AK_arr[ind, :]
+        elif (len(dim) == 2):
+            layer_val = layer_val_arr[ind[0],ind[1],:]
+            PEdge_Bot = PEdge_Bot_arr[ind[0],ind[1],:]
+            SW_AK     = SW_AK_arr[ind[0],ind[1], :]
+        else:
+            print(' - AMF_trop: dimension error. 2')
+            exit()
         if ind_l_arr is None:
             ind_l = None
         else: 
@@ -263,6 +273,13 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
             P_tropopause = None
         else:
             P_tropopause = P_tropopause_arr[ind]
+
+#        print(P_tropopause)
+#        print(PEdge_Bot.shape)
+#        print(PEdge_Bot)
+#        print(PEdge_Bot_arr.shape)
+#        print('ywang3')
+#        exit()
 
         # calculate AMF or VCD_AK
         data_one = AMF_trop_one(layer_val, PEdge_Bot, SW_AK, SW_AK_press, 
