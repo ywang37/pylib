@@ -459,7 +459,7 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
     if n_sat_lev > 1:
         dim_sat_lev = nc_f.createDimension('sat_lev', n_sat_lev)
 
-    # create variables in a netCDF filea
+    # create variables in a netCDF file
 
     # ScatteringWtPressure
     nc_var_swp = nc_f.createVariable('sat_ScatteringWtPressure', 

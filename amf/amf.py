@@ -274,13 +274,6 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
         else:
             P_tropopause = P_tropopause_arr[ind]
 
-#        print(P_tropopause)
-#        print(PEdge_Bot.shape)
-#        print(PEdge_Bot)
-#        print(PEdge_Bot_arr.shape)
-#        print('ywang3')
-#        exit()
-
         # calculate AMF or VCD_AK
         data_one = AMF_trop_one(layer_val, PEdge_Bot, SW_AK, SW_AK_press, 
                 ind_l=ind_l, P_tropopause=P_tropopause, var=var)
