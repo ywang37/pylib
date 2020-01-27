@@ -97,6 +97,49 @@ def read_nd49_resample(file_list, varname_list):
 
     return out_dict
 
+def read_bpch(filename, varname_list, latlon_flag=True,
+        verbose=True):
+    """ read data from GEOS-Chem bpch file
+
+    Paratemters
+    -----------
+    filename : str
+        bpch file
+    varname_list : list
+        A list of variable names.
+    latlon_flag : bool
+        Whether latitude and longitude is returned
+
+    Returns
+    -------
+
+    """
+
+    out_dict = {}
+
+
+
+    # read file
+    if verbose:
+        print('reading ' + filename)
+    infiles, argcs = pncparse(args = [filename, '-f bpch'])
+    infile = infiles[0]
+
+    # get variables
+    for varname in varname_list:
+        out_dict[varname] = np.array(infile.variables[varname])
+
+
+    if latlon_flag:
+        out_dict['latitude']  = np.array(infile.variables['latitude'])
+        out_dict['longitude'] = np.array(infile.variables['longitude'])
+        lat_e = np.array(infile.variables['latitude_bounds'])
+        lon_e = np.array(infile.variables['longitude_bounds'])
+        out_dict['latitude_e']  = np.append(lat_e[:,0], lat_e[-1,1])
+        out_dict['longitude_e'] = np.append(lon_e[:,0], lon_e[-1,1])
+
+
+    return out_dict
 
 
 
