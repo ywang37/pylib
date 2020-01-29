@@ -6,6 +6,9 @@ Created on September 17, 2019
 
 import numpy as np
 
+#
+#------------------------------------------------------------------------------
+#
 def generate_grid(nlat_c, nlon_c, 
         lat_min=-90.0, lat_max=90.0, lon_min=-180.0, lon_max=180.0):
     """ Generate latitudes and longitudes of grid edges and centers
@@ -45,7 +48,9 @@ def generate_grid(nlat_c, nlon_c,
     lon_c = (lon_e[0:-1] + lon_e[1:]) * 0.5
 
     return lat_e, lon_e, lat_c, lon_c
-
+#
+#------------------------------------------------------------------------------
+#
 def generate_grid_2(lat_res, lat_min, lat_max,
         lon_res, lon_min, lon_max):
     """ Generate latitudes and longitudes of grid edges and centers
@@ -87,7 +92,53 @@ def generate_grid_2(lat_res, lat_min, lat_max,
                     lon_min=lon_min, lon_max=lon_max)
 
     return lat_e, lon_e, lat_c, lon_c
+#
+#------------------------------------------------------------------------------
+#
+def get_pressure_index(pres_edge, pressure, check_flag=True):
+    """ Get index of specific pressure layer
+    (Yi Wang, 01/29/2020)
 
+    Parameters
+    ----------
+    pres_edge : 1D numpy array
+        Pressure levels in descening order.
+    pressure : float
+        pressure
+    check_flag : bool (defaul: True)
+        Check if *pres_edge* is in descending order
+
+    Returns
+    -------
+    i : int
+        index
+
+    """
+
+    # check range
+    if (pressure > pres_edge[0]) or (pressure < pres_edge[-1]):
+        print(' - get_pressure_index: !!! ERROR !!!, ' + \
+                'pressure is out of range.')
+        print(' pressure is {}'.format(pressure))
+        print(' pressure edges are ', pres_edge)
+        exit()
+
+    # check descending order
+    for i in range(len(pres_edge)-1):
+        if (pres_edge[i+1] >= pres_edge[i]):
+            print(' - get_pressure_index: pres_edge is not in' + \
+                    'descending order.')
+            print('pres_edge is: ')
+            print(pres_edge)
+            exit()
+
+    # get index
+    for i in range(len(pres_edge)-1):
+        if ( (pressure <= pres_edge[i]) and (pressure >= pres_edge[i+1]) ):
+            return i
+#
+#------------------------------------------------------------------------------
+#
 def get_center_index(edges, value):
     """ Get index of specific latitude or longitude.
 
@@ -101,7 +152,7 @@ def get_center_index(edges, value):
     Returns
     -------
     i : int
-       index
+        index
     
     """
     if (value < edges[0]) or (value > edges[-1]):
@@ -143,7 +194,9 @@ def get_center_index_2(value, start, end, step):
         i = i - 1
 
     return i
-
+#
+#------------------------------------------------------------------------------
+#
 def region_limit_flag(lat, lon, region_limit):
     """ Find pixels in the *region_limit_flag*
     (Yi Wang, 11/27/2019)
@@ -174,7 +227,9 @@ def region_limit_flag(lat, lon, region_limit):
     flag = np.logical_and(flag_lat, flag_lon)
 
     return flag
-
+#
+#------------------------------------------------------------------------------
+#
 def generate_grid_gc_2x25():
     """
     """
@@ -198,7 +253,9 @@ def generate_grid_gc_2x25():
     lon_c = (lon_e[0:-1] + lon_e[1:]) / 2.0
 
     return lat_e, lon_e, lat_c, lon_c
-
+#
+#------------------------------------------------------------------------------
+#
 def get_index_gc_2x25(lat, lon, lat_e, lon_e):
     """
     """
@@ -223,3 +280,6 @@ def get_index_gc_2x25(lat, lon, lat_e, lon_e):
         j = np.sum(lon_e <= lon) - 1
 
     return i, j
+#
+#------------------------------------------------------------------------------
+#

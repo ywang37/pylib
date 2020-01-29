@@ -4,10 +4,12 @@ Created on Janunary 16, 2020
 @author: Yi Wang
 """
 
+import copy
 import numpy as np
 from scipy import interpolate
 from tqdm import tqdm
 
+from mylib.grid_utility import get_pressure_index
 from mylib.model.trop import tropospheric_layer_column_one
 
 #
@@ -106,32 +108,131 @@ def correction_factor_one(AK, S_aprior, S_new):
 #
 #------------------------------------------------------------------------------
 #
-def shape_factor_intep(layer_val, press_edge, new_press_edge):
+def shape_factor_intep_one(layer_val_in, press_edge_in, new_press_edge):
     """ Calculate shape factor in *new_press_edge* 
+    (Yi Wang, 01/29/2020)
 
     Parameters
     ----------
-    layer_val : 1-D array
+    layer_val_in : 1-D array
         Species columnar cencentrations at every layer.
         Unit is like molec/cm^2, DU, ...
-    press_edge : 1-D array
+    press_edge_in : 1-D array
         Pressure edge of *layer_val*
         Thus len(press_edge) == (len(layer_val) + 1) is usually True.
         Sometimes,  top level pressure is not provide, then 
         len(press_edge) == len(layer_val) is usually True.
+        The first level is bottom.
     new_press_edge : 1-D array
         Shape factor is calculated at these pressure layers.
+        The first level is bottom
 
     Returns
     -------
-    shape_factor : 1-D array
-        Shape factor at *new_press_edge*
+    out_dict : dict
+        keys and values:
+            'new_shape_factor' : 1-D array
+                Shape factor at *new_press_edge*
+            'new_layer_val' : 1-D array
+                VCD at *new_press_edge*
 
     """
 
-    return
+    out_dict = {}
 
+    # copy data
+    layer_val  = copy.deepcopy(layer_val_in)
+    press_edge = copy.deepcopy(press_edge_in)
 
+    # If the lowest level of *new_press_edge* has higher pressure
+    # than the that of the lowest level of press_edge, we artificall
+    # extend *layer_val* to the lowest level of *new_press_edge*
+    press_bot     = press_edge[0]
+    new_press_bot = new_press_edge[0]
+    if (new_press_bot > press_bot):
+
+        # extend pressure level
+        press_edge = np.insert(press_edge, 0, new_press_bot)
+
+        # linearly extend *layer_val* the lowest level
+        press_diff   = press_edge[1] - press_edge[2]
+        press_extend = press_edge[0] - press_edge[1]
+        ratio = press_extend / press_diff
+        val_extend = ratio * layer_val[0]
+        layer_val = np.insert(layer_val, 0, val_extend)
+
+    # Check if pressure levels are in descending order.
+    # check press_edge
+    for i in range(len(press_edge)-1):
+        if (press_edge[i+1] >= press_edge[i]):
+            print(' - shape_factor_intep: press_edge is not in ' + 
+                    'descending order.')
+            print('press_edge is: ')
+            print(press_edge)
+            exit()
+    # check new_press_edge
+    for i in range(len(new_press_edge)-1):
+        if (new_press_edge[i+1] >= new_press_edge[i]):
+            print(' - shape_factor_intep: new_press_edge is not in ' +
+                    'descending order.')
+            print('new_press_edge is: ')
+            print(new_press_edge)
+            exit()
+
+    # Interpolate layer_val to new layers defined by new_press_edge,
+    # and save the result to new_layer_val.
+    new_layer_val = np.full((len(new_press_edge)-1,), np.nan)
+    for i in range(len(new_layer_val)):
+
+        # pressure bottom and top level for each layer
+        press_floor   = new_press_edge[i]
+        press_ceiling = new_press_edge[i+1]
+
+        # layer index in layer_val 
+        j_floor   = get_pressure_index(press_edge, press_floor  )
+        j_ceiling = get_pressure_index(press_edge, press_ceiling)
+
+        # calcualte VCD within [press_floor, press_ceiling]
+        if (j_floor == j_ceiling):
+        # New layer is subset of an old layer
+
+            new_layer_val[i] = layer_val[j_floor] * \
+                    ( (press_floor         - press_ceiling        ) / \
+                      (press_edge[j_floor] - press_edge[j_floor+1])     )
+
+        elif (j_floor < j_ceiling):
+        # New layer is subset of at least two old layers
+
+            # bottom part of the new layer
+            bot_part = layer_val[j_floor] * \
+                    ( (press_floor         - press_edge[j_floor+1]) / \
+                      (press_edge[j_floor] - press_edge[j_floor+1])     )
+
+            # top part of the new layer
+            top_part = layer_val[j_ceiling] * \
+                    (  (press_edge[j_ceiling] - press_ceiling          ) / \
+                       (press_edge[j_ceiling] - press_edge[j_ceiling+1])    )
+
+            # add bottom part and top part, and assign the sum
+            # to new layer
+            new_layer_val[i] = bot_part + top_part
+
+            # add center part of the new layer, if exists
+            if ( (j_ceiling - j_floor) > 1 ):
+                new_layer_val[i] += np.sum( layer_val[j_floor+1:j_ceiling] )
+
+        else:
+        # error
+            print(' - shape_factor_intep: j_floor is {}, which is larger' + \
+                    ' than j_ceiling {}'.format(j_floor, j_ceiling))
+
+    # VCD at new_press_edge
+    out_dict['new_layer_val'] = new_layer_val
+
+    # new shape factor at new_press_edge
+    out_dict['new_shape_factor'] = new_layer_val / np.sum(new_layer_val)
+
+    return out_dict
 #
 #------------------------------------------------------------------------------
 #
@@ -347,3 +448,89 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
 #
 #------------------------------------------------------------------------------
 #
+def test_driver_shape_factor_intep_one(old_layer_val, old_press_edge, 
+        new_press_edge):
+
+    out_dict = shape_factor_intep_one(old_layer_val, old_press_edge,
+            new_press_edge)
+
+    print('old_press_edge: ')
+    print(old_press_edge)
+    print('old_layer_val: ')
+    print(old_layer_val)
+    print('sum of old_layer_val = {}'.format(np.sum(old_layer_val)))
+    print('new_press_edge: ')
+    print(new_press_edge)
+    print('new_layer_val: ')
+    print(out_dict['new_layer_val'])
+    print('sum of new_layer_val = ' + \
+            '{}'.format(np.sum(out_dict['new_layer_val'])))
+    print('new_shape_factor: ')
+    print(out_dict['new_shape_factor'])
+    print('sum of new_shape_factor = ' + \
+            '{}'.format(np.sum(out_dict['new_shape_factor'])))
+
+if ('__main__' == __name__):
+
+    n_dash = 30
+
+    ###############################
+    # Test shape_factor_intep_one
+    ###############################
+
+    print('-'*n_dash + 'Start testing shape_factor_intep_one' + '-'*n_dash)
+
+    # old pressure edges
+    old_press_edge = np.array(
+            [1013.25, 1010.0, 1000.0, 975.0, 945.0, 900.0, 825.0, 700.0,
+                550.0, 200.0, 100.0]
+            )
+
+    # old layer values
+    old_layer_val = np.array(
+            [1.2, 1.8, 2.6, 2.2, 1.9, 1.0, 0.6, 0.5, 0.2, 0.1]
+            )
+
+    # new pressure edges 1
+    print('--- test 1 ---')
+    new_press_edge_1 = np.array(old_press_edge)
+    test_driver_shape_factor_intep_one(old_layer_val, old_press_edge,
+            new_press_edge_1)
+
+    # new pressure edges 2
+    print('--- test 2 ---')
+    new_press_edge_2 = np.array(
+            [1013.25, 1010.0, 980.0, 800.0, 100.0]
+            )
+    test_driver_shape_factor_intep_one(old_layer_val, old_press_edge,
+            new_press_edge_2)
+
+    # new pressure edges 3
+    print('--- test 3 ---')
+    new_press_edge_3 = np.array(
+            [1013.0, 1011.0, 920.0, 800.0, 700.0, 200.0, 100.0]
+            )
+    test_driver_shape_factor_intep_one(old_layer_val, old_press_edge,
+            new_press_edge_3)
+
+    # new pressure edges 4
+    print('--- test 4 ---')
+    new_press_edge_4 = np.array(
+            [1015.0, 1011.0, 920.0, 800.0, 700.0, 560.0]
+            )   
+    test_driver_shape_factor_intep_one(old_layer_val, old_press_edge,
+            new_press_edge_4)
+
+
+    print('-'*n_dash + 'End testing shape_factor_intep_one' + '-'*n_dash)
+
+
+
+
+
+
+
+
+
+
+
