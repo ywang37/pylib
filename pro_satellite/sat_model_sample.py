@@ -141,9 +141,9 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
             print('lon_e: ')
             print(mod_lon_e)
             print('lat_c: ')
-            print(mod_lat_c)
+            print(mod_lat)
             print('lon_c:')
-            print(mod_lon_c)
+            print(mod_lon)
             exit()
 
 
@@ -245,8 +245,6 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
             if (ind_1 == mod_n_time):
                 ind_1 = ind_1 - 1
             ind_2 = ind_1 + 1
-            #print(ind_1, mod_TAI93[ind_1])
-            #print(ind_2, mod_TAI93[ind_2])
             if not ((sat_TAI93[sat_i,sat_j] >= mod_TAI93[ind_1]) or
                     (sat_TAI93[sat_i,sat_j] <= mod_TAI93[ind_2])):
                 print(' - sat_model_sample: error')
@@ -300,8 +298,6 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
                 x1 = mod_TAI93[ind_1]
                 x2 = mod_TAI93[ind_2]
                 weight = linear_interp_weight(x, x1, x2)
-                #print(x, x1, x2)
-                #print(weight)
 
                 # linear interpolation
                 mod_var_interp = \
@@ -323,8 +319,6 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         sat_grid_num_full = np.broadcast_to(sat_grid_num.T,
                 sat_grid.shape[::-1])
         sat_grid_num_full = sat_grid_num_full.T
-        print('test')
-        print()
 
         # average 
         sat_grid_flag = (sat_grid_num_full > 0)
@@ -406,7 +400,7 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
     mod_1D_dict       = data_dict['mod_1D_dict']
     ind_1D_dict       = data_dict['ind_1D_dict']
     count             = data_dict['count']
-    swp               = data_dict['sat_ScatteringWtPressure']
+    swp               = data_dict.get('sat_ScatteringWtPressure', None)
 
     mod_var_name_list = list(mod_grid_dict.keys())
     mod_var_name_list.sort()
@@ -428,9 +422,31 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
 
     # find if satellite observation have vertical dimension
     n_sat_lev = 1
+    all_sat_lev = []
     for sat_obs_name in sat_obs_name_list:
         if sat_grid_dict[sat_obs_name].ndim == 3:
-            n_sat_lev = sat_grid_dict[sat_obs_name].shape[2]
+            all_sat_lev.append(sat_grid_dict[sat_obs_name].shape[2])
+    all_sat_lev = list(set(all_sat_lev))
+    if len(all_sat_lev) == 0:
+        pass
+    elif len(all_sat_lev) == 1:
+        n_sat_lev = all_sat_lev[0]
+    elif len(all_sat_lev) == 2:
+        all_sat_lev.sort()
+        if ((all_sat_lev[1] - all_sat_lev[0]) == 1):
+            n_sat_lev = all_sat_lev[0]
+            sat_lev_edge_flag = True
+        else:
+            print(' - save_sat_model_sample: satellite layer error.')
+            print('layer # is {}'.format(all_sat_lev[0]))
+            print('layer edge # is {}'.format(all_sat_lev[0]))
+            exit()
+    else:
+        print(' - save_sat_model_sample: satellite layer error.')
+        print('layer # list is: ')
+        print(all_sat_lev)
+        print('The function cannot procces so many layers')
+        exit()
 
     # fine if satellite observations have vertical dimension
 
@@ -458,12 +474,16 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
 
     if n_sat_lev > 1:
         dim_sat_lev = nc_f.createDimension('sat_lev', n_sat_lev)
+        if sat_lev_edge_flag:
+            dim_sat_lev_edge = \
+                    nc_f.createDimension('sat_lev_edge', n_sat_lev+1)
 
     # create variables in a netCDF file
 
     # ScatteringWtPressure
-    nc_var_swp = nc_f.createVariable('sat_ScatteringWtPressure', 
-            'f4', ('sat_lev', ))
+    if swp is not None:
+        nc_var_swp = nc_f.createVariable('sat_ScatteringWtPressure', 
+                'f4', ('sat_lev', ))
 
     if save_2D:
         # lat and lon
@@ -505,9 +525,20 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
                         nc_f.createVariable('sat_'+sat_obs_name, 'f4',
                                 ('Latitude', 'Longitude'))
             elif sat_grid.ndim == 3:
-                nc_var_sat_grid = \
-                        nc_f.createVariable('sat_'+sat_obs_name, 'f4',
-                                ('Latitude', 'Longitude', 'sat_lev'))
+                if (sat_grid.shape[2] == n_sat_lev):
+                    nc_var_sat_grid = \
+                            nc_f.createVariable('sat_'+sat_obs_name, 'f4',
+                                    ('Latitude', 'Longitude', 'sat_lev'))
+                elif (sat_grid.shape[2] == (n_sat_lev+1)):
+                    nc_var_sat_grid = \
+                            nc_f.createVariable('sat_'+sat_obs_name, 'f4',
+                                    ('Latitude', 'Longitude', 'sat_lev_edge'))
+                else:
+                    print(' - save_sat_model_sample: satellite ' + 
+                            sat_obs_name + 'shape error.')
+                    print(sat_obs_name + 'shape is: ')
+                    print(sat_grid.shape)
+                    exit()
             else:
                 print(' - save_sat_model_sample: sat_grid variable ' + 
                         sat_obs_name + 
@@ -546,9 +577,20 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
                         nc_f.createVariable('sat_1D_'+sat_obs_name, 'f4',
                                 ('grid',))
             elif sat_1D.ndim == 2:
-                nc_var_sat_1D = \
-                        nc_f.createVariable('sat_1D_'+sat_obs_name, 'f4',
-                                ('grid', 'sat_lev'))
+                if (sat_1D.shape[1] == n_sat_lev):
+                    nc_var_sat_1D = \
+                            nc_f.createVariable('sat_1D_'+sat_obs_name, 'f4',
+                                    ('grid', 'sat_lev'))
+                elif (sat_1D.shape[1] == (n_sat_lev+1)):
+                    nc_var_sat_1D = \
+                            nc_f.createVariable('sat_1D_'+sat_obs_name, 'f4',
+                                    ('grid', 'sat_lev_edge'))
+                else:
+                    print(' - save_sat_model_sample: satellite ' +
+                            sat_obs_name + 'shape error.')
+                    print(sat_obs_name + 'shape is: ')
+                    print(sat_1D.shape)
+                    exit()
             else:
                 print(' - save_sat_model_sample: sat_1D variable ' +
                         sat_obs_name +
@@ -559,7 +601,8 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
     # write variables
 
     # ScatteringWtPressure
-    nc_var_swp[:] = swp
+    if swp is not None:
+        nc_var_swp[:] = swp
 
     if save_2D:
         # lat and lon

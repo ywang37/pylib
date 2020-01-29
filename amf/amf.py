@@ -74,6 +74,67 @@ def VCD_AK_one(layer_val, AK):
 #
 #------------------------------------------------------------------------------
 #
+def correction_factor_one(AK, S_aprior, S_new):
+    """ Calculate correction factor for satellite vertial column
+    density when new shape facor is available.
+    Here AK is not average kernel.
+    I'm not sure if AK is scattering_weight / AMF_sat
+
+    Parameters
+    ----------
+    AK : 1-D array
+        Averageing kernel
+    S_aprior : 1-D array
+        aprior shape used in the trace gas retrieving procees
+        if V is vertical column desnity, V * S_aprior is verical
+        column density at every layer. np.sum(S_aprior) is 1.0
+    S_new : 1-D array
+        new shape facor
+
+    Returns
+    -------
+    ctn_factor : float
+        correction factor.
+        If V_sat is satellite VCD retrieval, V_sat * ctn_factor is
+        a new corrected satellite VCD retrieval.
+
+    """
+
+    ctn_factor = 1.0 + np.sum( (AK - 1.0) * (S_aprior - S_new) )
+
+    return ctn_factor
+#
+#------------------------------------------------------------------------------
+#
+def shape_factor_intep(layer_val, press_edge, new_press_edge):
+    """ Calculate shape factor in *new_press_edge* 
+
+    Parameters
+    ----------
+    layer_val : 1-D array
+        Species columnar cencentrations at every layer.
+        Unit is like molec/cm^2, DU, ...
+    press_edge : 1-D array
+        Pressure edge of *layer_val*
+        Thus len(press_edge) == (len(layer_val) + 1) is usually True.
+        Sometimes,  top level pressure is not provide, then 
+        len(press_edge) == len(layer_val) is usually True.
+    new_press_edge : 1-D array
+        Shape factor is calculated at these pressure layers.
+
+    Returns
+    -------
+    shape_factor : 1-D array
+        Shape factor at *new_press_edge*
+
+    """
+
+    return
+
+
+#
+#------------------------------------------------------------------------------
+#
 def SW_AK_intep_one(SW_AK, SW_AK_press, new_press):
     """ Interpolate scattering weight or averaging kernel
     to new pressure levels.

@@ -43,6 +43,7 @@ def read_OMPS_NO2_L2(filename, varnames=[], replace=False, verbose=False):
             '/GeolocationData/GroundPixelQualityFlags',
             '/GeolocationData/InstrumentQualityFlags',
             '/ScienceData/ColumnAmountNO2tropo',
+            '/ScienceData/CloudFraction',
             '/ScienceData/PixelQualityFlags',
             ]
     if not replace:
