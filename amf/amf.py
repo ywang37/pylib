@@ -95,16 +95,34 @@ def correction_factor_one(AK, S_aprior, S_new):
 
     Returns
     -------
-    ctn_factor : float
+    corrn_factor : float
         correction factor.
-        If V_sat is satellite VCD retrieval, V_sat * ctn_factor is
+        If V_sat is satellite VCD retrieval, V_sat * corrn_factor is
         a new corrected satellite VCD retrieval.
 
     """
 
-    ctn_factor = 1.0 + np.sum( (AK - 1.0) * (S_aprior - S_new) )
+    # check AK
+    if np.any( np.isnan(AK) ):
+        print(' - correction_factor_one: nan exists in AK.')
+        print(' AK is ', AK)
+        exit()
 
-    return ctn_factor
+    # check S_aprior
+    if np.any( np.isnan(S_aprior) ):
+        print(' - correction_factor_one: nan exists in S_aprior.')
+        print(' S_aprior is ', S_aprior)
+        exit()
+
+    # check S_new
+    if np.any( np.isnan(S_new) ):
+        print(' - correction_factor_one: nan exists in S_new.')
+        print(' S_new is ', S_new)
+        exit()
+
+    corrn_factor = 1.0 + np.sum( (AK - 1.0) * (S_aprior - S_new) )
+
+    return corrn_factor
 #
 #------------------------------------------------------------------------------
 #
@@ -236,6 +254,102 @@ def shape_factor_intep_one(layer_val_in, press_edge_in, new_press_edge):
 #
 #------------------------------------------------------------------------------
 #
+def shape_factor_correction_factor_one(layer_val, press_edge, 
+        new_press_edge_in, AK_in, S_aprior_in, nan_flag=True):
+    """ Call shape_factor_intep_one function and correction_factor_one
+    function to caulculate correction_factor for one pixel.
+    (Yi Wang, 01/30/2020)
+
+    Parameters
+    ----------
+    layer_val : 1-D array
+        Species columnar cencentrations at every layer.
+        Unit is like molec/cm^2, DU, ...
+    press_edge : 1-D array
+        Pressure edge of *layer_val*
+        Thus len(press_edge) == (len(layer_val) + 1) is usually True.
+        Sometimes,  top level pressure is not provide, then 
+        len(press_edge) == len(layer_val) is usually True.
+        The first level is bottom.
+    new_press_edge_in : 1-D array
+        Shape factor is calculated at these pressure layers.
+        The first level is bottom
+    AK_in : 1-D array
+        Averageing kernel in the *new_press_edge* layers
+    S_aprior_in : 1-D array
+        aprior shape used in the trace gas retrieving procees
+        if V is vertical column desnity, V * S_aprior is verical
+        column density at every layer. np.sum(S_aprior) is 1.0
+        *S_aprior* is in the *new_press_edge* layers
+    nan_flag : bool (default is Ture)
+        If nan_flag is True, np.nan in the low layers of new_press_edge,
+        AK, and S_aprior will be removed.
+
+    Returns
+    -------
+    out_dict : dict
+        keys and values:
+            'new_shape_factor' : 1-D array
+                Shape factor at *new_press_edge*
+            'new_layer_val' : 1-D array
+                VCD at *new_press_edge*
+            'corrn_factor' : float
+                Correction factor
+
+    """
+
+    # remove nan
+    if nan_flag:
+        # find index of first valid element
+        for i in range(len(new_press_edge_in)):
+            if not np.isnan(new_press_edge_in[i]):
+                break
+        # new_press_edge
+        new_press_edge = copy.copy(new_press_edge_in[i:])
+        if np.any( np.isnan(new_press_edge) ):
+            print(' - shape_factor_correction_factor_one: ' + 
+                    'nan exists in new_press_edge.')
+            print(' new_press_edge_in is ', new_press_edge_in)
+            print(' new_press_edge is ', new_press_edge)
+            exit()
+        # AK
+        AK = copy.copy(AK_in[i:])
+        if np.any( np.isnan(AK) ):
+            print(' - shape_factor_correction_factor_one: ' + 
+                    'nan exists in AK.')
+            print(' AK_in is ', AK_in)
+            print(' AK is ', AK)
+            exit()
+        # S_aprior
+        S_aprior = copy.copy(S_aprior_in[i:])
+        if np.any( np.isnan(S_aprior) ):
+            print(' - shape_factor_correction_factor_one: ' + 
+                    'nan exists in S_aprior.')
+            print(' S_aprior_in is ', S_aprior_in)
+            print(' S_aprior is ', S_aprior)
+            exit()
+    else:
+        new_press_edge = copy.copy(new_press_edge_in)
+        AK             = copy.copy(AK_in)
+        S_aprior       = copy.copy(S_aprior_in)
+
+    # calculate new shape factor in the *new_press_edge* layer
+    shape_dict = shape_factor_intep_one(layer_val, press_edge, new_press_edge)
+
+    # calculate correction factor
+    new_shape_factor = shape_dict['new_shape_factor']
+    corrn_factor = correction_factor_one(AK, S_aprior, new_shape_factor)
+
+    # output data
+    out_dict = {}
+    out_dict['new_shape_factor'] = new_shape_factor
+    out_dict['new_layer_val']    = new_layer_val
+    out_dict['corrn_factor']     = corrn_factor
+
+    return out_dict
+#
+#------------------------------------------------------------------------------
+#
 def SW_AK_intep_one(SW_AK, SW_AK_press, new_press):
     """ Interpolate scattering weight or averaging kernel
     to new pressure levels.
@@ -279,6 +393,7 @@ def AMF_trop_one(layer_val, PEdge_Bot, SW_AK, SW_AK_press, ind_l=None,
     (1) Air mass factor if *var* is 'AMF', or
     (2) Vertical column density that can be compared to the 
         satellite retrieval if *var* is 'VCD_AK'
+    for one pixel
 
     Parameters
     ----------
@@ -365,9 +480,43 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
         SW_AK_press, ind_l_arr=None,
         P_tropopause_arr=None, var='AMF',
         flag=None):
-    """
+    """ Calculate tropospheric
+    (1) Air mass factor if *var* is 'AMF', or
+    (2) Vertical column density that can be compared to the 
+        satellite retrieval if *var* is 'VCD_AK'
+    for 1-D or 2-D field.
 
-    flag : 
+    Parameters
+    ----------
+    layer_val_arr : 2-D or 3-D array
+        The elements are layer_val parameter for AMF_trop_one function.
+    PEdge_Bot_arr : 2-D or 3-D array or None
+        The elements are PEdge_Bot parameter for AMF_trop_one function.
+    SW_AK_arr : 2-D or 3-D array
+        The elements are SW_AK parameter for AMF_trop_one function.
+    SW_AK_press : 1-D array
+        Pressure of *SW_AK_arr*
+    ind_l_arr : 1-D or 2-D array or None
+        The elements are ind_l parameter for AMF_trop_one function.
+    P_tropopause_arr : 1-D or 2-D array or None
+        The elements are P_tropopause parameter for AMF_trop_one function.
+    var : str (default is 'AMF')
+        'AMF': *SW_AK* is scattering weight, and air mass factor
+            is calculated.
+        'VCD_AK': *SW_AK* is averaging kernel, and vertical column 
+            density that can be compared to the satellite retrieval.
+    flag : 1-D or 2-D bool array or None
+        Only precess then pixel with True flag. If flag is None,
+        all pixels are processed.
+
+    Returns
+    -------
+    out_dict : dict
+        'AMF': Air mass factor if *var* is 'AMF'.
+        'VCD_AK': Model tropospheric vertical column density that can 
+            be compared to the satellite retrieval.
+        'VCD' : Model tropospheric vertical column density 
+
     """
 
     # Field dimension
@@ -448,6 +597,113 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
 #
 #------------------------------------------------------------------------------
 #
+def shape_factor_correction_factor(layer_val_arr, press_edge_arr,
+        new_press_edge_arr, AK_arr, S_aprior_arr, nan_flag=True,
+        flag=None):
+    """ Call shape_factor_correction_factor_one function to calculate
+    correction factors for 1-D or 2-D field.
+    (Yi Wang, 01/30/2020)
+
+    Parameters
+    ----------
+    layer_val_arr : 2-D or 3-D array
+        The elements are layer_val parameter for 
+        shape_factor_correction_factor_one function.
+    press_edge_arr : 2-D or 3-D array
+        The elements are press_edge parameter for
+        shape_factor_correction_factor_one function.
+    new_press_edge_arr : 2-D or 3-D array
+        The elements are new_press_edge_in parameter for
+        shape_factor_correction_factor_one function.
+    AK_arr : 2-D or 3-D array
+        The elements are AK_in parameter for
+        shape_factor_correction_factor_one function.
+    S_aprior_arr : 2-D or 3-D array
+        The elements are S_aprior_in parameter for
+        shape_factor_correction_factor_one function.
+    nan_flag : bool (default is Ture)
+        passed to shape_factor_correction_factor_one function.
+        If nan_flag is True, np.nan in the low layers of 
+        new_press_edge_arr, AK_arr, and S_aprior_arr will be removed.
+    flag : 1-D or 2-D bool array or None
+        Only precess then pixel with True flag. If flag is None,
+        all pixels are processed.
+
+    Returns
+    -------
+    out_dict : dict
+
+    """
+
+    # Field dimension
+    dim = layer_val_arr.shape
+    dim = dim[0:-1]
+
+    # total number of grid
+    N_grid = 1
+    for i in range(len(dim)):
+        N_grid *= dim[i]
+
+    # flag
+    if flag is None:
+        flag = np.full(dim, True)
+
+    # output dict
+    out_dict = {}
+    out_dict['corrn_factor'] = np.full(dim, np.nan)
+
+    # iterate every grid
+    for i in tqdm(range(N_grid)):
+
+        # get index
+        if (len(dim) == 1):
+            ind = i
+        elif (len(dim) == 2):
+            ind = (i // dim[1], i % dim[1])
+        else:
+            print(' - shape_factor_correction_factor: dimension error. 1')
+            exit()
+
+        # only process data with flag is True
+        if  (not flag[ind]):
+            continue
+
+        # prepare parameters for AMF_trop_one function.
+        if (len(dim) == 1):
+            layer_val      = layer_val_arr[ind,:]
+            press_edge     = press_edge_arr[ind,:]
+            new_press_edge = new_press_edge_arr[ind,:]
+            AK             = AK_arr[ind,:]
+            S_aprior       = S_aprior_arr[ind,:]
+        elif (len(dim) == 2):
+            layer_val      = layer_val_arr[ind[0],ind[1],:]
+            press_edge     = press_edge_arr[ind[0],ind[1],:]
+            new_press_edge = new_press_edge_arr[ind[0],ind[1],:]
+            AK             = AK_arr[ind[0],ind[1],:]
+            S_aprior       = S_aprior_arr[ind[0],ind[1],:]
+        else:
+            print(' - shape_factor_correction_factor: dimension error. 2')
+            exit()
+        if ind_l_arr is None:
+            ind_l = None
+        else: 
+            ind_l = ind_l_arr[ind]
+        if P_tropopause_arr is None:
+            P_tropopause = None
+        else:
+            P_tropopause = P_tropopause_arr[ind]
+
+        # calculate correction factor
+        data_one = shape_factor_correction_factor_one(layer_val, press_edge,
+                new_press_edge, AK, S_aprior, nan_flag=nan_flag)
+
+        # save data
+        out_dict['corrn_factor'][ind] = data_one['corrn_factor'] 
+
+    return
+#
+#------------------------------------------------------------------------------
+#
 def test_driver_shape_factor_intep_one(old_layer_val, old_press_edge, 
         new_press_edge):
 
@@ -469,7 +725,9 @@ def test_driver_shape_factor_intep_one(old_layer_val, old_press_edge,
     print(out_dict['new_shape_factor'])
     print('sum of new_shape_factor = ' + \
             '{}'.format(np.sum(out_dict['new_shape_factor'])))
-
+#
+#------------------------------------------------------------------------------
+#
 if ('__main__' == __name__):
 
     n_dash = 30
@@ -516,21 +774,17 @@ if ('__main__' == __name__):
     # new pressure edges 4
     print('--- test 4 ---')
     new_press_edge_4 = np.array(
-            [1015.0, 1011.0, 920.0, 800.0, 700.0, 560.0]
+            [1015.0, 1011.0, 920.0, 800.0, 700.0, 560.0, 400.0, 300.0]
             )   
     test_driver_shape_factor_intep_one(old_layer_val, old_press_edge,
             new_press_edge_4)
 
+    # new pressure edges 5
+    print('--- test 5 ---')
+    new_press_edge_5 = np.array(
+            [1013.0, 1011.0, 920.0, 800.0, 700.0, 560.0, 400.0, 300.0]
+            )
+    test_driver_shape_factor_intep_one(old_layer_val, old_press_edge,
+            new_press_edge_5)
 
     print('-'*n_dash + 'End testing shape_factor_intep_one' + '-'*n_dash)
-
-
-
-
-
-
-
-
-
-
-
