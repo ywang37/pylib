@@ -343,8 +343,34 @@ def shape_factor_correction_factor_one(layer_val, press_edge,
     # output data
     out_dict = {}
     out_dict['new_shape_factor'] = new_shape_factor
-    out_dict['new_layer_val']    = new_layer_val
+    out_dict['new_layer_val']    = shape_dict['new_layer_val']
     out_dict['corrn_factor']     = corrn_factor
+
+#    #if np.sum(layer_val)>0.2:
+#    #if np.sum(layer_val[0])>0.06:
+#    if (np.sum(np.isnan(new_press_edge_in))>3):
+#        print('layer_val')
+#        print(layer_val)
+#        print('press_edge')
+#        print(press_edge)
+#        print('new_press_edge_in')
+#        print(new_press_edge_in)
+#        print('AK_in')
+#        print(AK_in)
+#        print('S_aprior_in')
+#        print(S_aprior_in)
+#        print('new_press_edge')
+#        print(new_press_edge)
+#        print('AK')
+#        print(AK)
+#        print('S_aprior')
+#        print(S_aprior)
+#        print('new_shape_factor')
+#        print(new_shape_factor)
+#        print('new_layer_val')
+#        print(out_dict['new_layer_val'])
+#        print('corrn_factor={}'.format(corrn_factor))
+#        exit()
 
     return out_dict
 #
@@ -684,14 +710,6 @@ def shape_factor_correction_factor(layer_val_arr, press_edge_arr,
         else:
             print(' - shape_factor_correction_factor: dimension error. 2')
             exit()
-        if ind_l_arr is None:
-            ind_l = None
-        else: 
-            ind_l = ind_l_arr[ind]
-        if P_tropopause_arr is None:
-            P_tropopause = None
-        else:
-            P_tropopause = P_tropopause_arr[ind]
 
         # calculate correction factor
         data_one = shape_factor_correction_factor_one(layer_val, press_edge,
@@ -700,7 +718,7 @@ def shape_factor_correction_factor(layer_val_arr, press_edge_arr,
         # save data
         out_dict['corrn_factor'][ind] = data_one['corrn_factor'] 
 
-    return
+    return out_dict
 #
 #------------------------------------------------------------------------------
 #
