@@ -583,6 +583,8 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
             ind = (i // dim[1], i % dim[1])
         else:
             print(' - AMF_trop: dimension error. 1')
+            print('dim is: ')
+            print(dim)
             exit()
 
         # only process data with flag is True

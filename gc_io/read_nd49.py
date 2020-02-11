@@ -98,7 +98,7 @@ def read_nd49_resample(file_list, varname_list):
     return out_dict
 
 def read_bpch(filename, varname_list, latlon_flag=True,
-        verbose=True):
+        verbose=True, squeeze=False):
     """ read data from GEOS-Chem bpch file
 
     Paratemters
@@ -109,6 +109,9 @@ def read_bpch(filename, varname_list, latlon_flag=True,
         A list of variable names.
     latlon_flag : bool
         Whether latitude and longitude is returned
+    squeeze : logical
+        Remove single-dimensional entries from the shape
+        of an array.
 
     Returns
     -------
@@ -129,7 +132,6 @@ def read_bpch(filename, varname_list, latlon_flag=True,
     for varname in varname_list:
         out_dict[varname] = np.array(infile.variables[varname])
 
-
     if latlon_flag:
         out_dict['latitude']  = np.array(infile.variables['latitude'])
         out_dict['longitude'] = np.array(infile.variables['longitude'])
@@ -138,6 +140,11 @@ def read_bpch(filename, varname_list, latlon_flag=True,
         out_dict['latitude_e']  = np.append(lat_e[:,0], lat_e[-1,1])
         out_dict['longitude_e'] = np.append(lon_e[:,0], lon_e[-1,1])
 
+    # Remove single-dimensional entries from the shape
+    # of an array
+    if squeeze:
+        for varn in out_dict:
+            out_dict[varn] = np.squeeze(out_dict[varn])
 
     return out_dict
 

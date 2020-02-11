@@ -364,6 +364,7 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
     out_dict['mod_1D_dict']       = mod_1D_dict
     out_dict['ind_1D_dict']       = ind_1D_dict
     out_dict['count']             = count
+    out_dict['valid_sat']         = lat_ind_1D.size
 
     return out_dict
 #
@@ -427,6 +428,7 @@ def save_sat_model_sample(filename, data_dict, save_2D=True, save_1D=True,
         if sat_grid_dict[sat_obs_name].ndim == 3:
             all_sat_lev.append(sat_grid_dict[sat_obs_name].shape[2])
     all_sat_lev = list(set(all_sat_lev))
+    sat_lev_edge_flag = False
     if len(all_sat_lev) == 0:
         pass
     elif len(all_sat_lev) == 1:
