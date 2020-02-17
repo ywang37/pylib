@@ -4,6 +4,7 @@ Created on September 17, 2019
 @author: Yi Wang
 """
 
+from area import area
 import numpy as np
 
 #
@@ -280,6 +281,52 @@ def get_index_gc_2x25(lat, lon, lat_e, lon_e):
         j = np.sum(lon_e <= lon) - 1
 
     return i, j
+#
+#------------------------------------------------------------------------------
+#
+def grid_area_1(lat_e, lon_int, nlon):
+    """ Calculate grid areas
+    (Yi Wang, 02/17/2020)
+
+    Parameters
+    ----------
+    lat_e : 1-D array
+        Latitude edges
+    lon_int : float
+        Longitude interval
+    nlon : int
+        Number of grids along longitude
+
+    Returns
+    -------
+    area_2D : 2-D array
+        Grid areas. Unit is m^2
+
+    Notes
+    -----
+    (1) The function may not work over polar region.
+
+    """
+
+    # area along latitude
+    area_1D = np.zeros((len(lat_e)-1,))
+    for i in range(len(area_1D)):
+        coordinates = [ [[0.0, lat_e[i]], 
+                         [0.0, lat_e[i+1]], 
+                         [lon_int, lat_e[i+1]],
+                         [lon_int, lat_e[i]],
+                         [0.0, lat_e[i]]
+                         ] ]
+        area_1D[i] = area( {
+            'type': 'Polygon',
+            'coordinates': coordinates
+            } )
+
+    area_2D = np.tile(area_1D, nlon)
+    area_2D = np.reshape(area_2D, (nlon,len(lat_e)-1))
+    area_2D = np.transpose(area_2D)
+
+    return area_2D
 #
 #------------------------------------------------------------------------------
 #

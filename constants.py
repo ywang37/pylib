@@ -11,6 +11,9 @@ Created on Janunary 7, 2020
 # Avogadro constatn
 avo = 6.02214076e23
 
+# molecular weight
+mol_N = 14.0 # Nitrigon
+
 ##################
 # unit conversions
 ##################
