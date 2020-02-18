@@ -47,7 +47,7 @@ def read_nc(filename, varnames, verbose=False,
         else:
             group = fid.groups[tmp[0]]
             for i in range(1, len(tmp)-1):
-                group = group.groups[tmp[0]]
+                group = group.groups[tmp[i]]
             out_data[varn] = group.variables[tmp[-1]][:]
 
     # close dataset
