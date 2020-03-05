@@ -18,7 +18,7 @@ def vmr_to_molec_cm2(val_old, air_den, box_hgt, vmr=None):
     val_old :
         unit is ppbv, ppmv, or v/v, depends on *vmr*
     air_den :
-        air density. unit is molce/cm^2
+        air density. unit is molec/cm^3
     box_hgt :
         box height. unit is m.
     vmr :
@@ -48,6 +48,7 @@ def vmr_to_molec_cm2(val_old, air_den, box_hgt, vmr=None):
         print(' - vmr_to_molec_cm2: vmr value is ', vmr,
                 '. it only can be one of ', 
                 ['ppbv', 'ppmv', 'v/v'])
+        exit()
 
     # conversion
     val_new = val_old * scale * air_den * (box_hgt * 100.0)

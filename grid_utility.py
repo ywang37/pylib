@@ -161,7 +161,7 @@ def get_center_index(edges, value):
 latitude or longitude is out of range')
         print(' latitide or longitude is {}'.format(value))
         print(' latitude or longitude edges are ', edges)
-        exit()
+        return None
 
     for i in range(len(edges)-1):
         if (value >= edges[i]) and (value <= edges[i+1]):
@@ -187,6 +187,7 @@ def get_center_index_2(value, start, end, step):
         print('start = {}'.format(start))
         print('end = {}'.format(end))
         print(' - get_center_index_2: out of range')
+        return None
 
     N = round( (end - start) / step)
 
