@@ -217,7 +217,8 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
     # and regrid satellite observations to model grids.
     lat_ind_1D = []
     lon_ind_1D = []
-    for sat_i in tqdm(range(sat_n_lat)):
+    #for sat_i in tqdm(range(sat_n_lat)):
+    for sat_i in range(sat_n_lat):
         for sat_j in range(sat_n_lon):
             
             # skip invalid satellite data

@@ -574,7 +574,8 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
 
 
     # iterate every grid
-    for i in tqdm(range(N_grid)):
+    #for i in tqdm(range(N_grid)):
+    for i in range(N_grid):
 
         # get index
         if (len(dim) == 1):
