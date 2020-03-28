@@ -6,6 +6,7 @@ Created on March 24, 2020
 
 import datetime
 import numpy as np
+import os
 
 from mylib.io import read_nc
 
@@ -163,6 +164,80 @@ def get_geosfp_hourly_A1_3days(root_dir, date, varnames,
         out_dict[varn] = np.vstack(out_dict[varn])
 
     return out_dict
+#
+#------------------------------------------------------------------------------
+#
+def get_geosfp_hourly_A1_3days_direct(root_dir, date, varnames,
+        filename='GEOSFP.YYYYMMDD.A1.2x25.nc', verbose=True):
+    """ Read GEOSFP.YYYYMMDD.A1.*.nc directly, thus times are 00:30,
+    01:30, ......, 23:30. 
+    (ywang, 03/26/20)
+
+    Parameters
+    ----------
+    root_dir : str 
+        Data root directory
+    date : str 
+        YYYYMMDD
+    varnames : list
+        Variables to be processed
+    fillename : str
+        For example, 'GEOSFP.20180630.A1.2x25.nc'
+    verbose : bool
+            Output more information.
+
+    Returns
+    -------
+        out_dict : dict
+
+    """
+
+    print(' - get_geosfp_hourly_A1_3days_direct: ' + date)
+
+    # directory
+    if root_dir[-1] != '/':
+        root_dir = root_dir + '/'
+
+    # Date
+    currDate_D = datetime.datetime.strptime(date, '%Y%m%d')
+    preDate_D  = currDate_D + datetime.timedelta(days=-1)
+    nextDate_D = currDate_D + datetime.timedelta(days=1)
+    preDate  = str(preDate_D)
+    nextDate = str(nextDate_D)
+
+    p_date = preDate[0:4]  + preDate[5:7]  + preDate[8:10]
+    c_date = date
+    n_date = nextDate[0:4] + nextDate[5:7] + nextDate[8:10]
+
+    # all dates in a list
+    date_list = [p_date, c_date, n_date]
+
+    # get all data
+    out_dict = {}
+
+    for varn in varnames:
+        out_dict[varn] = []
+
+    for i in range(len(date_list)):
+
+        fn = root_dir + c_date[0:4] + '/' + c_date[4:6] + '/' + \
+                filename.replace('YYYYMMDD', date_list[i])
+
+        # Determine if file exists
+        if not os.path.exists(fn):
+            print(' - get_geosfp_hourly_A1_3days_direct: WARNING! ' + \
+                    filename + ' does not exist.')
+            continue
+
+        tmp_dict = read_nc(fn, varnames, verbose=True)
+
+        for varn in varnames:
+            out_dict[varn].append(tmp_dict[varn])
+
+    for varn in varnames:
+        out_dict[varn] = np.vstack(out_dict[varn])
+
+    return out_dict
 
 
 
@@ -172,8 +247,6 @@ def get_geosfp_hourly_A1_3days(root_dir, date, varnames,
 
 
 
-
-
-
-
-
+#
+#------------------------------------------------------------------------------
+#
