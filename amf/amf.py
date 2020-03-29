@@ -682,7 +682,8 @@ def shape_factor_correction_factor(layer_val_arr, press_edge_arr,
     out_dict['corrn_factor'] = np.full(dim, np.nan)
 
     # iterate every grid
-    for i in tqdm(range(N_grid)):
+    #for i in tqdm(range(N_grid)):
+    for i in range(N_grid):
 
         # get index
         if (len(dim) == 1):
