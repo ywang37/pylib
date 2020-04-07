@@ -161,12 +161,50 @@ def get_center_index(edges, value):
 latitude or longitude is out of range')
         print(' latitide or longitude is {}'.format(value))
         print(' latitude or longitude edges are ', edges)
+        exit()
         return None
 
     for i in range(len(edges)-1):
         if (value >= edges[i]) and (value <= edges[i+1]):
             return i
+#
+#------------------------------------------------------------------------------
+#
+def get_center_index_latlon(lat_e, lon_e, region_limit):
+    """ Get indexes for *region_limit*
+    (ywang, 03/31/20)
 
+    Parameters
+    ----------
+    lat_e : 1D numpy array
+        Latitude edges
+    lon_e : 1D numpy array
+        Longitude edges
+    region_limit : list_like
+        [lat_min, lon_min, lat_max, lon_max]
+
+    Returns
+    -------
+    i1, i2, j1, j2 : all ints
+
+    """
+
+    # lat_min
+    i1 = get_center_index(lat_e, region_limit[0])
+
+    # lat_max
+    i2 = get_center_index(lat_e, region_limit[2])
+
+    # lon_min
+    j1 = get_center_index(lon_e, region_limit[1])
+
+    # lon_max
+    j2 = get_center_index(lon_e, region_limit[3])
+
+    return i1, i2, j1, j2
+#
+#------------------------------------------------------------------------------
+#
 def get_center_index_2(value, start, end, step):
     """ Get index of specific latitude or longitude.
 
