@@ -4,9 +4,57 @@ Created on November 6, 2019
 @author: Yi Wang
 """
 
+import h5py
 from netCDF4 import Dataset
 import numpy as np
 
+#
+#------------------------------------------------------------------------------
+#
+def read_hdf5(filename, varnames, verbose=False,
+        squeeze=False):
+    """ Read HDF5 file
+    (ywang, 04/11/20)
+
+    Parameters
+    ----------
+    filename : str
+        HDF5 filename.
+    varnames : list
+        A list of variable names.
+    verbose : logical
+        Whether or not output more informations.
+    squeeze : logical
+        Remove single-dimensional entries from the shape
+        of an array.
+
+    Returns
+    -------
+    out_data : dict
+        A dictionary of all variables.
+    """
+
+    if verbose:
+        print(' - read_hdf5: reading ' + filename)
+
+    # open file
+    infile = h5py.File(filename, 'r')
+
+    # read variables
+    out_data = {}
+    for varn in varnames:
+        out_data[varn] = infile[varn][:]
+
+    # close file
+    infile.close()
+
+    # Remove single-dimensional entries from the shape
+    # of an array
+    if squeeze:
+        for varn in out_data:
+            out_data[varn] = np.squeeze(out_data[varn])
+
+    return out_data
 #
 #------------------------------------------------------------------------------
 #

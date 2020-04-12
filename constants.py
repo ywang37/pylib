@@ -23,3 +23,6 @@ mol_m2_to_molec_cm2 = avo / 1e4
 
 # molec/cm^2 => DU
 molec_cm2_to_DU = 1.0 / 2.69e16
+
+# molec (NOx) => kg (N)
+molec_to_kgN = 1.0 / avo * mol_N / 1e3

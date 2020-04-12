@@ -237,6 +237,20 @@ def get_center_index_2(value, start, end, step):
 #
 #------------------------------------------------------------------------------
 #
+def get_2D_center_index_2(lat_value, lat_start, lat_end, lat_step,
+        lon_value, lon_start, lon_end, lon_step):
+    """ Get index of specific latitude or longitude through
+    call get_center_index_2.
+    (ywang, 04/10/20)
+    """
+    
+    i = get_center_index_2(lat_value, lat_start, lat_end, lat_step)
+    j = get_center_index_2(lon_value, lon_start, lon_end, lon_step)
+
+    return i, j
+#
+#------------------------------------------------------------------------------
+#
 def region_limit_flag(lat, lon, region_limit):
     """ Find pixels in the *region_limit_flag*
     (Yi Wang, 11/27/2019)

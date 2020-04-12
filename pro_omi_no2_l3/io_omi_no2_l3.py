@@ -6,6 +6,51 @@ Created on September 16, 2019
 
 from netCDF4 import Dataset
 
+from mylib.io import read_hdf5
+
+#
+#------------------------------------------------------------------------------
+#
+def read_OMI_NO2_L3(filename, verbose=True):
+    """ Read OMI L3 NO2
+    (ywang, 04/11/20)
+
+    Parameters
+    ----------
+    filename : str
+        OMI L3 NO2 data file.
+    verbose : logical
+        Whether or not output more informations.
+
+    Returns
+    -------
+    out_data : dict
+        A dictionary of all variables.
+    """
+
+    print(' - read_OMI_NO2_L3: reading ' + filename)
+
+    # variables
+    short_varnames = [ \
+            'ColumnAmountNO2TropCloudScreened',
+            ]
+    data_path = '/HDFEOS/GRIDS/ColumnAmountNO2/Data Fields/'
+    varnames = []
+    for varn in short_varnames:
+        varnames.append(data_path + varn)
+
+    # read data
+    out_dict = read_hdf5(filename, varnames)
+
+    # change to short variable names
+    for varn in varnames:
+        tmp = varn.split('/')[-1]
+        out_dict[tmp] = out_dict.pop(varn)
+
+    return out_dict
+#
+#------------------------------------------------------------------------------
+#
 def output_month_OMI_NO2_L3(out_dir, month, NO2, verbose=False):
     """ Output monthly mean of OMI L3 NO2
 
