@@ -5,8 +5,8 @@ Created on March 18, 2020
 """
 
 import datetime
+from netCDF4 import Dataset
 import os
-
 
 #
 #------------------------------------------------------------------------------
@@ -197,14 +197,79 @@ def process_geosfp_month(yyyymm, root_run_dir, root_geosfp_dir,
             break
         currDate_D = nextDate_D
 
+#
+#------------------------------------------------------------------------------
+#
+def geosfp_add_variables(gc_dir, new_dir, yyyymmdd):
+    """ Due to unknown reasons, there are problems in some
+    original GEOS-FP files. Thus, we only extract soil temperature
+    data from original GEOS-FP files and add them to meteorological
+    data for GEOS-Chem.
+    (ywang, 04/19/2020)
 
+    Parameters
+    ----------
+    gc_dir : str
+        Directory to save GEOS-Chem meteorological data.
+    new_dir : str
+        Directory to save meteorological data with soil
+        temperature.
+    yyyymmdd : str
+        Date
 
+    """
 
+    # variables to be copied
+    varnames = ['TSOIL1', 'TSOIL2', 'TSOIL3', 'TSOIL4',
+            'TSOIL5', 'TSOIL6', 'TSURF']
 
+    # gc_dir
+    if gc_dir[-1] != '/':
+        gc_dir = gc_dir + '/'
 
+    # new_dir
+    if new_dir[-1] != '/':
+        new_dir = new_dir + '/'
 
+    gc_filename = 'GEOSFP.' + yyyymmdd + '.A1.2x25.nc'
 
+    # GEOS-Chem meteorological data downloaded directly.
+    ori_file = gc_dir + gc_filename
 
+    # GEOS-Chem meteorological data downloaded directly plus
+    # soil temperature.
+    new_file = new_dir + gc_filename
+
+    # GEOS-Chem meteorological data processed
+    soil_file = new_dir + 'my_ori_process/' +gc_filename
+
+    # copy data
+    os.system('cp ' + ori_file + ' ' + new_file)
+
+    # open files
+    new_nc = Dataset(new_file, 'r+')
+    soil_nc = Dataset(soil_file, 'r')
+
+    # copy variables and attributes
+    for varn in varnames:
+
+        # get variable
+        in_var = soil_nc[varn]
+
+        # create variable
+        out_var = new_nc.createVariable(varn, in_var.datatype, 
+                in_var.dimensions)
+
+        # copy attributes
+        out_var.setncatts({k: in_var.getncattr(k) \
+                for k in in_var.ncattrs()})
+
+        # copy values
+        out_var[:] = in_var[:]
+
+    # close files
+    new_nc.close()
+    soil_nc.close()
 
 
 
