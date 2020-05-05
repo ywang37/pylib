@@ -1,5 +1,5 @@
 """
-Created on March 17, 2020
+Created on May 05, 2020
 
 @author: Yi Wang
 """
@@ -12,10 +12,10 @@ import os
 #------------------------------------------------------------------------------
 #
 def tavg1_url(yyyymmdd, collections=None):
-    """ Generate a list that contains the URLs of GEOS-FP 
+    """ Generate a list that contains the URLs of MERRA-2
     one-day asm tavg1 data if collections is None.
     But users can specific variables now.
-    (ywang, 03/17/2020)
+    (ywang, 05/05/2020)
 
     Parameters
     ----------
@@ -31,61 +31,43 @@ def tavg1_url(yyyymmdd, collections=None):
     """
 
     # URL of GEOS-FP data
-    url = 'https://portal.nccs.nasa.gov/datashare/gmao/geos-fp/das/'
+    url = 'https://goldsmr4.gesdisc.eosdis.nasa.gov/data/MERRA2/'
 
     #
     if collections is None:
         collections = ['tavg1_2d_flx_Nx', 'tavg1_2d_lnd_Nx',
                        'tavg1_2d_rad_Nx', 'tavg1_2d_slv_Nx']
 
+    # collecation directory
+    coln_dir = {}
+    coln_dir['tavg1_2d_flx_Nx'] = 'M2T1NXFLX.5.12.4'
+    coln_dir['tavg1_2d_lnd_Nx'] = 'M2T1NXLND.5.12.4'
+    coln_dir['tavg1_2d_rad_Nx'] = 'M2T1NXRAD.5.12.4'
+    coln_dir['tavg1_2d_slv_Nx'] = 'M2T1NXSLV.5.12.4'
+
     # Generate URLs
     urls = []
     yyyy = yyyymmdd[0:4]
     mm   = yyyymmdd[4:6]
     dd   = yyyymmdd[6:8]
-    url_curr_day = url + 'Y' + yyyy + '/M' + mm + '/D' + dd + '/'
 
-    # tavg1
-    Nh = 24
-    for ih in range(Nh):
+    for coln in collections:
 
-        ch = str(ih).zfill(2) + '30'
-
-        for coln in collections:
-
-            if 'tavg1' in coln:
-
-                filename = url + 'Y' + yyyy + '/M' + mm + '/D' + dd + \
-                        '/GEOS.fp.asm.' + coln  + '.' + yyyymmdd  + '_' + \
-                        ch + '.V01.nc4'
-
-                urls.append(filename)
-
-    # inst3
-    Nh = 8
-    for ih in range(Nh):
-
-        ch = str(ih*3).zfill(2) + '00'
-
-        for coln in collections:
-
-            if 'inst3' in coln:
-
-                filename = url + 'Y' + yyyy + '/M' + mm + '/D' + dd + \
-                        '/GEOS.fp.asm.' + coln  + '.' + yyyymmdd  + '_' + \
-                        ch + '.V01.nc4'
-
-                urls.append(filename)
+        filename = url + coln_dir[coln] + '/' + yyyy + '/' + mm + \
+                '/MERRA2_300.' + coln  + '.' + yyyymmdd  + '.nc4'
+        urls.append(filename)
 
     return urls
 #
 #------------------------------------------------------------------------------
 #
 def get_tavg1(yyyymmdd, data_dir, retry=10,
-        collections=None):
-    """ Download GEOS-FP one-day asm tavg1 data, if collections is None.
+        collections=None, 
+        user='yi-wang-4@uiowa.edu', 
+        password=''):
+    """ Download MERRA-2 one-day asm tavg1 data, if collections is None.
     But users can specific variables now.
-    (ywang, 03/17/2020)
+    (ywang, 05/05/2020)
 
     Parameters
     ----------
@@ -99,6 +81,10 @@ def get_tavg1(yyyymmdd, data_dir, retry=10,
         success.
     collections : list
         list of variables. 
+    user : str
+        MERRA-2 website user name.
+    password : str
+        MERRA-2 website password.
 
     Returns
     -------
@@ -120,24 +106,28 @@ def get_tavg1(yyyymmdd, data_dir, retry=10,
     f.close()
 
     # Download data
-    cmd = 'wget -i ' + tmp_file + ' -P ' + data_dir
+    cmd = 'wget -i ' + tmp_file + ' -P ' + data_dir + \
+            ' --user=' + user + \
+            ' --password=' + password
     os.system(cmd)
 
     # Remove tmp_tavg1_files.txt
     os.system('rm -rf ' + tmp_file)
 
     # check
-    check_tavg1(urls, data_dir, retry=retry)
+    check_tavg1(urls, data_dir, retry=retry, user=user, password=password)
 
     return out_dict
 #
 #------------------------------------------------------------------------------
 #
-def check_tavg1(yyyymmdd, data_dir, retry=10):
-    """ Check if any GEOS-FP one-day asm tavg1 data (collections is None)
+def check_tavg1(yyyymmdd, data_dir, retry=10, collections=None,
+        user='yi-wang-4@uiowa.edu',
+        password=''):
+    """ Check if any MERRA-2 one-day asm tavg1 data (collections is None)
     are not downloaded successfully. If so, download them again.
     But users can specific variables now.
-    (ywang, 03/17/2020)
+    (ywang, 05/05/2020)
 
     Parameters
     ----------
@@ -149,6 +139,10 @@ def check_tavg1(yyyymmdd, data_dir, retry=10):
         The directory where all data will be saved to.
     collections : list
             list of variables.
+    user : str
+        MERRA-2 website user name.
+    password : str
+        MERRA-2 website password.
 
     Returns
     -------
@@ -186,7 +180,9 @@ def check_tavg1(yyyymmdd, data_dir, retry=10):
             # check a file
             tmp1 = os.system(nc_cmd)
             if tmp1 != 0:
-                wget_cmd = 'wget ' + url + ' -O ' + filename
+                wget_cmd = 'wget ' + url + ' -O ' + filename + \
+                        ' --user=' + user + \
+                        ' --password=' + password
                 print('Retry "' + wget_cmd + '" {:} time(s).'.format(itry))
                 os.system(wget_cmd)
 
@@ -196,9 +192,12 @@ def check_tavg1(yyyymmdd, data_dir, retry=10):
 #
 #------------------------------------------------------------------------------
 #
-def get_tavg1_month(yyyymm, root_data_dir):
-    """ Download GEOS-FP one-month asm tavg1 data.
-    (ywang, 03/18/2020)
+def get_tavg1_month(yyyymm, root_data_dir,
+        collections=None,
+        user='yi-wang-4@uiowa.edu',
+        password=''):
+    """ Download MERRA2 one-month data.
+    (ywang, 05/05/2020)
 
     Parameters
     ----------
@@ -206,6 +205,12 @@ def get_tavg1_month(yyyymm, root_data_dir):
         Month, '201805' for example.
     root_data_dir : str
         The root directory where all data will be saved to.
+    collections : list
+        list of variables.
+    user : str
+        MERRA-2 website user name.
+    password : str
+        MERRA-2 website password.
 
     """
 
@@ -224,15 +229,16 @@ def get_tavg1_month(yyyymm, root_data_dir):
         yyyymmdd = yyyy + mm + dd
 
         # Directory
-        data_dir = root_data_dir + 'Y' + yyyy + '/M' + mm + '/D' + dd
+        data_dir = root_data_dir + yyyy + '/' + mm
         if not os.path.isdir(data_dir):
             os.system('mkdir -p ' + data_dir)
-        os.system('rm -f ' + data_dir + '/*.nc4')
+        os.system('rm -f ' + data_dir + '/*.' + yyyymmdd + '.nc4')
 
         # Download data 
         print('Download ' + yyyymmdd)
         print('Directory is ' + data_dir)
-        get_tavg1(yyyymmdd, data_dir)
+        get_tavg1(yyyymmdd, data_dir, collections=collections,
+                user=user, password=password)
 
         # Next day
         nextDate_D = currDate_D + datetime.timedelta(days=1)
@@ -243,7 +249,9 @@ def get_tavg1_month(yyyymm, root_data_dir):
 #------------------------------------------------------------------------------
 #
 def get_tavg1_time_range(startDate, endDate, root_data_dir,
-        collections=None):
+        collections=None,
+        user='yi-wang-4@uiowa.edu',
+        password=''):
     """ Download GEOS-FP asm tavg1 (collecations is None)data 
     of a time range.
     But users can specific variables now.
@@ -257,6 +265,10 @@ def get_tavg1_time_range(startDate, endDate, root_data_dir,
         The root directory where all data will be saved to.
     collections : list
         list of variables.
+    user : str
+        MERRA-2 website user name.
+    password : str
+        MERRA-2 website password.
 
     """
 
@@ -279,15 +291,16 @@ def get_tavg1_time_range(startDate, endDate, root_data_dir,
         yyyymmdd = yyyy + mm + dd
 
         # Directory
-        data_dir = root_data_dir + 'Y' + yyyy + '/M' + mm + '/D' + dd
+        data_dir = root_data_dir + yyyy + '/' + mm
         if not os.path.isdir(data_dir):
             os.system('mkdir -p ' + data_dir)
-        os.system('rm -f ' + data_dir + '/*.nc4')
+        os.system('rm -f ' + data_dir + '/*.' + yyyymmdd + '.nc4')
 
         # Download data 
         print('Download ' + yyyymmdd)
         print('Directory is ' + data_dir)
-        get_tavg1(yyyymmdd, data_dir, collections=collections)
+        get_tavg1(yyyymmdd, data_dir, collections=collections,
+                user=user, password=password)
 
         # go to next day
         currDate_D = currDate_D + datetime.timedelta(days=1)
