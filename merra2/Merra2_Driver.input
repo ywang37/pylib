@@ -1,0 +1,146 @@
+#------------------------------------------------------------------------------
+#          Harvard University Atmospheric Chemistry Modeling Group            !
+#------------------------------------------------------------------------------
+#BOP
+#
+# !INCLUDE: Merra2Driver.input
+#
+# !DESCRIPTION: Specifies the input directory and the locations of the 
+# MERRA2 netCDF data files that are required to produce the GEOS-Chem 
+# "A1", "A3", and "I3" files.
+#\\
+#\\
+# !REMARKS:
+# For each GMAO data file type we must specify:
+# - GMAO data file template name (one line)
+# - GMAO data fields to be read from this file (one comma-separated, line)
+#
+# If you wish to omit all fields from a given file type, you may
+# specify "none" for the template name and fields list.
+#
+# End all directory path names with slashes!
+#
+# !REMARKS:
+#
+# !REVISION HISTORY: 
+#  28 Jul 2015 - R. Yantosca - Initial version for MERRA2, based on GEOS-FP
+#
+
+==> Turn on debug print output?
+T
+
+==> const_2d_asm_Nx
+ftp://goldsmr4.sci.gsfc.nasa.gov/data/s4pa/MERRA_MONTHLY/M2C0NXASM.5.12.4/1980/
+MERRA2_100.const_2d_asm_Nx.00000000.nc4
+FRLAKE,FRLAND,FRLANDICE,FROCEAN,PHIS
+F
+
+==> tavg1_2d_flx_Nx
+ftp://goldsmr4.sci.gsfc.nasa.gov/data/s4pa/MERRA2/M2T1NXFLX.5.12.4/YYYY/MM/
+MERRA2_300.tavg1_2d_flx_Nx.YYYYMMDD.nc4
+EFLUX,EVAP,FRSEAICE,HFLUX,PBLH,PRECANV,PRECCON,PRECLSC,PRECSNO,PRECTOT,USTAR,Z0M
+
+==> tavg1_2d_lnd_Nx
+ftp://goldsmr4.sci.gsfc.nasa.gov/data/s4pa/MERRA2/M2T1NXLND.5.12.4/YYYY/MM/
+MERRA2_300.tavg1_2d_lnd_Nx.YYYYMMDD.nc4
+FRSNO,GRN,GWETROOT,GWETTOP,LAI,PARDF,PARDR,SNODP,SNOMAS
+
+==> tavg1_2d_rad_Nx
+ftp://goldsmr4.sci.gsfc.nasa.gov/data/s4pa/MERRA2/M2T1NXRAD.5.12.4/YYYY/MM/
+MERRA2_300.tavg1_2d_rad_Nx.YYYYMMDD.nc4
+ALBEDO,CLDTOT,LWGNT,LWTUP,SWGDN
+
+==> tavg1_2d_slv_Nx
+ftp://goldsmr4.sci.gsfc.nasa.gov/data/s4pa/MERRA2/M2T1NXSLV.5.12.4/YYYY/MM/
+MERRA2_300.tavg1_2d_slv_Nx.YYYYMMDD.nc4
+QV2M,SLP,TROPPT,TS,T2M,U10M,V10M,T10M,Q850,TO3
+
+==> tavg3_3d_asm_Nv
+ftp://goldsmr5.sci.gsfc.nasa.gov/data/s4pa/MERRA2/M2T3NVASM.5.12.4/YYYY/MM/
+MERRA2_300.tavg3_3d_asm_Nv.YYYYMMDD.nc4
+OMEGA,U,V
+
+==> tavg3_3d_cld_Nv
+ftp://goldsmr5.sci.gsfc.nasa.gov/data/s4pa/MERRA2/M2T3NVCLD.5.12.4/YYYY/MM/
+MERRA2_300.tavg3_3d_cld_Nv.YYYYMMDD.nc4
+A3cld: CLOUD,QI,QL,TAUCLI,TAUCLW,OPTDEPTH
+A3dyn: DTRAIN,RH
+
+==> tavg3_3d_mst_Ne
+ftp://goldsmr5.sci.gsfc.nasa.gov/data/s4pa/MERRA2/M2T3NEMST.5.12.4/YYYY/MM/
+MERRA2_300.tavg3_3d_mst_Ne.YYYYMMDD.nc4
+CMFMC,PFICU,PFILSAN,PFLCU,PFLLSAN
+
+==> tavg3_3d_mst_Nv
+ftp://goldsmr5.sci.gsfc.nasa.gov/data/s4pa/MERRA2/M2T3NVMST.5.12.4/YYYY/MM/
+MERRA2_300.tavg3_3d_mst_Nv.YYYYMMDD.nc4
+DQRCU,DQRLSAN,REEVAPCN,REEVAPLSAN
+
+==> tavg3_3d_rad_Nv
+ftp://goldsmr5.sci.gsfc.nasa.gov/data/s4pa/MERRA2/M2T3NVRAD.5.12.4/YYYY/MM/
+MERRA2_300.tavg3_3d_rad_Nv.YYYYMMDD.nc4
+none
+
+==> inst3_3d_asm_Nv
+ftp://goldsmr5.sci.gsfc.nasa.gov/data/s4pa/MERRA2/M2I3NVASM.5.12.4/YYYY/MM/
+MERRA2_300.inst3_3d_asm_Nv.YYYYMMDD.nc4
+PS,PV,QV,T
+
+==> Local Raw Data Path
+/Dedicated/jwang-data/shared_satData/MERRA2/ori/YYYY/MM/
+
+==> Nested 0.5 x 0.625 AS output
+F
+MERRA2.YYYYMMDD.%%%%%%.05x0625.AS.nc4
+/as/scratch/bmy/MERRA2/processed/
+/as/scratch/bmy/MERRA2/processed/
+385 159 529 291
+
+==> Nested 0.5 x 0.625 EU output
+F
+MERRA2.YYYYMMDD.%%%%%%.05x0625.EU.nc4
+/as/scratch/bmy/MERRA2/processed/
+/as/scratch/bmy/MERRA2/processed/
+241 241 369 321
+
+==> Nested 0.5 x 0.625 NA output
+F
+MERRA2.YYYYMMDD.%%%%%%.05x0625.NA.nc4
+/as/scratch/bmy/MERRA2/processed/
+/as/scratch/bmy/MERRA2/processed/
+65 201 225 321
+
+==> Nested 0.5 x 0.625 SE output
+F
+MERRA2.YYYYMMDD.%%%%%%.05x0625.SE.nc4
+/as/scratch/bmy/MERRA2/processed/
+/as/scratch/bmy/MERRA2/processed/
+409 201 497 241
+
+==> Global 0.5 x 0.625 output
+F
+MERRA2.YYYYMMDD.%%%%%%.05x0625.nc4
+/as/scratch/bmy/MERRA2/processed/
+/as/scratch/bmy/MERRA2/processed/
+
+==> 2 x 2.5 output
+T
+MERRA2.YYYYMMDD.%%%%%%.2x25.nc4
+/Dedicated/jwang-data/GCDATA/GEOS_2x2.5/MERRA2_soil_T/YYYY/MM/
+/Dedicated/jwang-data/GCDATA/GEOS_2x2.5/MERRA2_soil_T/YYYY/MM/
+
+==> 4 x 5 output 
+F
+MERRA2.YYYYMMDD.%%%%%%.4x5.nc4
+/as/scratch/bmy/MERRA2/processed/
+/as/scratch/bmy/MERRA2/processed/
+
+==> Mapping Weight Files
+weights_05x0625_to_2x25.txt
+weights_05x0625_to_4x5.txt
+
+==> Template Files
+Merra2_TemplateFile.nc
+#
+#EOP
+#------------------------------------------------------------------------------
