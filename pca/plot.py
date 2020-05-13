@@ -26,6 +26,7 @@ def plot_2D_components_and_coeffs(components, lat_e, lon_e,
         region_limit=[-90.0, -180.0, 90.0, 180.0],
         time_ticks=None,
         rotation=30.0,
+        reverse = [],
         ):
     """ plot 2D PCA spatial pattern
     (ywang, 04/12/20)
@@ -49,6 +50,8 @@ def plot_2D_components_and_coeffs(components, lat_e, lon_e,
     time_ticks : tuple
         The first element is tick positions, and the second
         element is tick labels.
+    reverse : list
+        Mode and time series to be reversed. 1-based
 
     """
 
@@ -71,8 +74,14 @@ def plot_2D_components_and_coeffs(components, lat_e, lon_e,
         fig  = layout_dict['fig']
         axes = layout_dict['axes']
 
+        # reverse
+        if (ic+1) in reverse:
+            sign = -1
+        else:
+            sign = 1
+
         # plot mode
-        mode = components[:,:,ic]
+        mode = components[:,:,ic] * sign
         vmax = np.max(np.absolute(mode))
         vmin = -vmax
         pout = cartopy_plot(lon_e, lat_e, mode, 
@@ -103,7 +112,7 @@ def plot_2D_components_and_coeffs(components, lat_e, lon_e,
 
         
         # plot coeff
-        coeff = coeffs[:,ic]
+        coeff = coeffs[:,ic] * sign
         x = range(len(coeff))
         axes[1].plot(x, coeff, '-o', markersize=3)
         axes[1].set_xlabel('Month')

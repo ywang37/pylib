@@ -94,6 +94,10 @@ def link_for_soil_temp(res, model, year, month, root_dir=None):
 
     if model == 'GEOS_FP':
         model_file = 'GEOSFP'
+        nc_suffix = 'nc'
+    elif model == 'MERRA2':
+        model_file = 'MERRA2'
+        nc_suffix = 'nc4'
 
     # root directory
     if root_dir is None:
@@ -118,9 +122,9 @@ def link_for_soil_temp(res, model, year, month, root_dir=None):
 
     # link
     os.system('ln -sf ' + ori_data_dir + model_file + '.' + year + month +
-            '*.A3*.*.nc ' + new_data_dir)
+            '*.A3*.*.' + nc_suffix  + ' ' + new_data_dir)
     os.system('ln -sf ' + ori_data_dir + model_file + '.' + year + month +
-            '*.I3.*.nc ' + new_data_dir)
+            '*.I3.*.' + nc_suffix + ' ' + new_data_dir)
 
 
 

@@ -88,8 +88,20 @@ def create_job(yyyymmdd, root_run_dir, merra2_dir,
     f.write(version)
     f.close()
 
+    # stream number
+    yyyy = yyyymmdd[0:4]
+    yyyy_int = int(yyyy)
+    if (yyyy_int >= 1980) and (yyyy_int <=1991):
+        stream_num = '100'
+    elif (yyyy_int >= 1992) and (yyyy_int <=2000):
+        stream_num = '200'
+    elif (yyyy_int >= 2001) and (yyyy_int <=2009):
+        stream_num = '300'
+    elif (yyyy_int >= 2010):
+        stream_num = '400'
+
     # read Merra2_Driver.input
-    fin = open(file_dir + '/Merra2_Driver.input', 'r')
+    fin = open(file_dir + '/Merra2_Driver_' + stream_num + '.input', 'r')
     gfdi = fin.readlines()
     fin.close()
 
@@ -201,8 +213,6 @@ def process_merra2_month(yyyymm, root_run_dir, root_merra2_dir,
         if (str(nextDate_D)[5:7] != mm):
             break
         currDate_D = nextDate_D
-        exit()
-
 #
 #------------------------------------------------------------------------------
 #

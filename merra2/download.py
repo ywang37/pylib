@@ -45,16 +45,33 @@ def tavg1_url(yyyymmdd, collections=None):
     coln_dir['tavg1_2d_rad_Nx'] = 'M2T1NXRAD.5.12.4'
     coln_dir['tavg1_2d_slv_Nx'] = 'M2T1NXSLV.5.12.4'
 
+    #################
     # Generate URLs
+    #################
+
     urls = []
+
+    # date
     yyyy = yyyymmdd[0:4]
     mm   = yyyymmdd[4:6]
     dd   = yyyymmdd[6:8]
 
+    # stream number
+    yyyy_int = int(yyyy)
+    if (yyyy_int >= 1980) and (yyyy_int <=1991):
+        stream_num = '100'
+    elif (yyyy_int >= 1992) and (yyyy_int <=2000):
+        stream_num = '200'
+    elif (yyyy_int >= 2001) and (yyyy_int <=2009):
+        stream_num = '300'
+    elif (yyyy_int >= 2010):
+        stream_num = '400'
+
     for coln in collections:
 
         filename = url + coln_dir[coln] + '/' + yyyy + '/' + mm + \
-                '/MERRA2_300.' + coln  + '.' + yyyymmdd  + '.nc4'
+                '/MERRA2_' + stream_num  + '.' + coln  + '.' + \
+                yyyymmdd  + '.nc4'
         urls.append(filename)
 
     return urls
