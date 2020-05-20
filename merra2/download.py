@@ -62,9 +62,9 @@ def tavg1_url(yyyymmdd, collections=None):
         stream_num = '100'
     elif (yyyy_int >= 1992) and (yyyy_int <=2000):
         stream_num = '200'
-    elif (yyyy_int >= 2001) and (yyyy_int <=2009):
+    elif (yyyy_int >= 2001) and (yyyy_int <=2010):
         stream_num = '300'
-    elif (yyyy_int >= 2010):
+    elif (yyyy_int >= 2011):
         stream_num = '400'
 
     for coln in collections:

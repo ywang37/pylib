@@ -95,9 +95,9 @@ def create_job(yyyymmdd, root_run_dir, merra2_dir,
         stream_num = '100'
     elif (yyyy_int >= 1992) and (yyyy_int <=2000):
         stream_num = '200'
-    elif (yyyy_int >= 2001) and (yyyy_int <=2009):
+    elif (yyyy_int >= 2001) and (yyyy_int <=2010):
         stream_num = '300'
-    elif (yyyy_int >= 2010):
+    elif (yyyy_int >= 2011):
         stream_num = '400'
 
     # read Merra2_Driver.input
