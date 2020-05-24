@@ -182,10 +182,12 @@ class trend_analysis():
 def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True, 
         sigma_flag=True, name='', 
         mean_vmin=None, mean_vmax=None,
-        mean_units='',
+        mean_cmap=None, mean_units='',
         trend_vmin=None, trend_vmax=None, 
         trend_cmap=plt.get_cmap('seismic'), trend_units='',
         sigma_units='',
+        countries=True, states=True,
+        mean_mask=None,
         ):
     """ Plot results from trend_analysis.
     (ywang, 05/21/20)
@@ -235,7 +237,13 @@ def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True,
 
         mean = data['mean']
 
+        if mean_mask is None:
+            mean_mask = np.full_like(mean, False)
+
+        mean = np.ma.masked_array(mean, mean_mask)
+
         mean_p = cartopy_plot(lon_e, lat_e, mean, cbar_prop=cbar_prop,
+                countries=countries, states=states, cmap=mean_cmap,
                 vmin=mean_vmin, vmax=mean_vmax)
         mean_p['cb'].set_label(mean_units)
 
@@ -249,6 +257,7 @@ def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True,
 
         trend_p = cartopy_plot(lon_e, lat_e, trend, cbar_prop=cbar_prop,
                 vmin=trend_vmin, vmax=trend_vmax,
+                countries=countries, states=states,
                 cmap=trend_cmap)
         trend_p['cb'].set_label(trend_units)
 
@@ -264,7 +273,8 @@ def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True,
             trend = data['trend']
 
         # plot sigma
-        sigma_p = cartopy_plot(lon_e, lat_e, sigma, cbar_prop=cbar_prop)
+        sigma_p = cartopy_plot(lon_e, lat_e, sigma, cbar_prop=cbar_prop,
+                countries=countries, states=states)
         sigma_p['cb'].set_label(sigma_units)
 
         # save sigma plot
@@ -279,6 +289,7 @@ def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True,
         # plot trends that are significant
         trend_signi_p = cartopy_plot(lon_e, lat_e, trend_signi, 
                 cbar_prop=cbar_prop,
+                countries=countries, states=states,
                 vmin=trend_vmin, vmax=trend_vmax,
                 cmap=trend_cmap)
         trend_signi_p['cb'].set_label(trend_units)

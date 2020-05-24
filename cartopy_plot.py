@@ -5,6 +5,7 @@ Created on August 29, 2019
 """
 
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import copy
 import matplotlib.pyplot as plt
@@ -26,6 +27,8 @@ def add_geoaxes(fig, *args,
         cl_color=None,
         lw=None,
         title=None,
+        countries=False,
+        states=False,
         **kwargs):
     """ Add a GeoAxes instance to Figure (fig) instance.
 
@@ -51,6 +54,10 @@ def add_geoaxes(fig, *args,
         Currently can be one of “110m”, “50m”, and “10m”
     title : str or None(default)
         title
+    countries : bool
+        Plot countries
+    states : bool
+        Plot states and provinces
 
     Returns
     -------
@@ -73,6 +80,17 @@ def add_geoaxes(fig, *args,
     if cl_color is None:
         cl_color = 'black'
     ax.coastlines(resolution=cl_res, color=cl_color, lw=lw)
+
+    if countries:
+        ax.add_feature(cfeature.BORDERS)
+
+    if states:
+        states_provinces = cfeature.NaturalEarthFeature(
+                category='cultural',
+                name='admin_1_states_provinces_lines',
+                scale='50m',
+                facecolor='none')
+        ax.add_feature(states_provinces, edgecolor='k', linewidth=0.5)
 
     # Tick labels
     tick_proj = ['PlateCarree', 'Mercator']
@@ -365,6 +383,8 @@ def cartopy_plot(*args, ax=None, fig=None,
         valid_min=None, valid_max=None,
         cbar=True, cbar_prop = {},
         title=None,
+        countries=False,
+        states=False,
         **kwargs):
     """ Plot a 2-D variable by pcolormesh.
 
@@ -404,6 +424,10 @@ def cartopy_plot(*args, ax=None, fig=None,
         Colorbar properties, transferred to plt.colorbar()
     title : str
         Title
+    countries : bool
+        Plot countries
+    states : bool
+        Plot states and provinces
     **kwargs : dict
         Keywords to pcolormesh
 
@@ -445,7 +469,8 @@ def cartopy_plot(*args, ax=None, fig=None,
     if ax is None:
         if fig is None:
             fig = plt.figure()
-        ax = add_geoaxes(fig, cl_res=cl_res, xtick=xtick, ytick=ytick)
+        ax = add_geoaxes(fig, cl_res=cl_res, xtick=xtick, ytick=ytick,
+                countries=countries, states=states)
 
     # set region limit
     if region_limit is not None:
