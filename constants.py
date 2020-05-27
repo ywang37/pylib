@@ -15,6 +15,7 @@ avo = 6.02214076e23
 mol_N = 14.0 # Nitrigon
 mol_O = 16.0 # Oxygen
 
+mol_dryair = 28.97 # dry air
 
 mol_NO = 30.0 # Nitric oxide
 
