@@ -38,11 +38,13 @@ def read_tropomi_no2(filename, varnames=[], replace=False, verbose=False,
     # all variables names
     all_varnames = [
             'PRODUCT/latitude', 
-            'PRODUCT/longutide',
+            'PRODUCT/longitude',
             'PRODUCT/nitrogendioxide_tropospheric_column',
             'PRODUCT/qa_value',
             'PRODUCT/SUPPORT_DATA/DETAILED_RESULTS/\
-cloud_radiance_fraction_nitrogendioxide_window'
+cloud_radiance_fraction_nitrogendioxide_window',
+            'PRODUCT/SUPPORT_DATA/GEOLOCATIONS/solar_zenith_angle',
+            'PRODUCT/SUPPORT_DATA/GEOLOCATIONS/viewing_zenith_angle',
             ]
     if replace:
         all_varnames = varnames

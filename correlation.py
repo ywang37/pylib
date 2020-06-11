@@ -4,6 +4,7 @@ Created on May 27, 2019
 @author: Yi Wang
 """
 
+import cartopy.crs as ccrs
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,7 +19,8 @@ def plot_pearsonr_map(filename, fig_dir, varname, name='',
         p_thre=0.05, r_vmin=None, r_vmax=None,
         r_cmap=plt.get_cmap('seismic'),
         p_vmin=None, p_vmax=None, p_cmap=None,
-        countries=True, states=True):
+        countries=True, states=True,
+        equator=False, NH_label='', SH_label=''):
     """ Plot pearson correlation coefficent.
     (ywang, 05/27/20)
 
@@ -59,11 +61,24 @@ def plot_pearsonr_map(filename, fig_dir, varname, name='',
     cbar_prop = {}
     cbar_prop['orientation'] = 'horizontal'
 
+    # equator line
+    eqr_c = 'white'
+    eqr_ls = '--'
+    eqr_ls_lw = 2
+
     # plot correlation coefficients
     r_plot = cartopy_plot(lon_e, lat_e, r_val, cbar_prop=cbar_prop,
             countries=countries, states=states, cmap=r_cmap,
             vmin=r_vmin, vmax=r_vmax)
     r_plot['cb'].set_label('Linear correlation coefficient')
+    if equator:
+        r_plot['ax'].plot([-180, 180], [0, 0], color=eqr_c,
+                linestyle=eqr_ls, lw=eqr_ls_lw, transform=ccrs.PlateCarree())
+        r_plot['ax'].text(-175, 5, NH_label, color=eqr_c, ha='left',
+                va='bottom', transform=ccrs.Geodetic())
+        r_plot['ax'].text(-175, -5, SH_label, color=eqr_c, ha='left',
+                va='top', transform=ccrs.Geodetic())
+
 
     # save correlation coefficients plot
     fig_r = fig_dir + name + '_r_' + varname + '.png'
@@ -74,6 +89,13 @@ def plot_pearsonr_map(filename, fig_dir, varname, name='',
             countries=countries, states=states, cmap=p_cmap,
             vmin=p_vmin, vmax=p_vmax)
     p_plot['cb'].set_label('p-value')
+    if equator:
+        p_plot['ax'].plot([-180, 180], [0, 0], color=eqr_c,
+                linestyle=eqr_ls, lw=eqr_ls_lw, transform=ccrs.PlateCarree())
+        p_plot['ax'].text(-175, 5, NH_label, color=eqr_c, ha='left',
+                va='bottom', transform=ccrs.Geodetic())
+        p_plot['ax'].text(-175, -5, SH_label, color=eqr_c, ha='left',
+                va='top', transform=ccrs.Geodetic())
 
     # save p-value
     fig_p = fig_dir + name + '_p_' + varname + '.png'
@@ -89,6 +111,13 @@ def plot_pearsonr_map(filename, fig_dir, varname, name='',
             vmin=r_vmin, vmax=r_vmax)
     r_signi_plot['cb'].set_label('Linear correlation coefficient' + \
             ' (p<{:})'.format(p_thre))
+    if equator:
+        r_signi_plot['ax'].plot([-180, 180], [0, 0], color=eqr_c,
+                linestyle=eqr_ls, lw=eqr_ls_lw, transform=ccrs.PlateCarree())
+        r_signi_plot['ax'].text(-175, 5, NH_label, color=eqr_c, ha='left',
+                va='bottom', transform=ccrs.Geodetic())
+        r_signi_plot['ax'].text(-175, -5, SH_label, color=eqr_c, ha='left',
+                va='top', transform=ccrs.Geodetic())
 
     # save correlation coefficients plot
     fig_r_signi = fig_dir + name + '_r_p' + str(p_thre) + '_' + \

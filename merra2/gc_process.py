@@ -27,7 +27,7 @@ def replace_line(ori_list, search_key, new_line):
 #------------------------------------------------------------------------------
 #
 def create_job(yyyymmdd, root_run_dir, merra2_dir, 
-        root_output_dict, version='5.12.4'):
+        root_output_dict, version='5.12.4', queue=None):
     """ Create a job for prcessing MERRA2 data
     (ywang, 05/05/2020)
 
@@ -44,6 +44,8 @@ def create_job(yyyymmdd, root_run_dir, merra2_dir,
         Values: Parent directory of output
     version : str
         MERRA2 version
+    queue : None or str
+        queue to run the job
 
     """
 
@@ -74,6 +76,11 @@ def create_job(yyyymmdd, root_run_dir, merra2_dir,
     # 'cd work_directory' in gc_process_job.sh
     replace_line(job_lines, 'cd work_directory',
             'cd ' + run_dir)
+
+    # queue
+    if queue is not None:
+        replace_line(job_lines, '#$ -q ARROMA',
+                '#$ -q ' + queue)
 
     # output gc_process_job.sh
     f_run_out = open(run_dir + '/gc_process_job.sh', 'w')
@@ -157,7 +164,7 @@ def create_job(yyyymmdd, root_run_dir, merra2_dir,
 #------------------------------------------------------------------------------
 #
 def process_merra2_month(yyyymm, root_run_dir, root_merra2_dir, 
-        root_output_dict, version='5.12.4'):
+        root_output_dict, version='5.12.4', queue=None):
     """ Process MERRA2 one-month asm tavg1 data.
     (ywang, 03/19/2020)
     yyyymm : str
@@ -171,6 +178,8 @@ def process_merra2_month(yyyymm, root_run_dir, root_merra2_dir,
         Values: Parent directory of output
     version : str
         MERRA2 version
+    queue : None or str
+        queue to run the job
 
     """
 
@@ -202,7 +211,7 @@ def process_merra2_month(yyyymm, root_run_dir, root_merra2_dir,
 
         # create job
         create_job(yyyymmdd, root_run_dir, merra2_dir, root_output_dict,
-                version=version)
+                version=version, queue=queue)
 
         # submit job 
         os.chdir(run_dir)
