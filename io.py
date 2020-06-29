@@ -111,8 +111,10 @@ def read_nc(filename, varnames, verbose=False,
 #
 #------------------------------------------------------------------------------
 #
-def write_nc(filename, data_dict, units_dict=None, verbose=True):
-    """ Write 2-D fields to netCDF file
+def write_nc(filename, data_dict, units_dict=None, 
+        data_3D_time_dict=None, time_type='int',
+        verbose=True):
+    """ Write 2-D, 3-D fields to netCDF file
     (Yi Wang, 02/17/2020)
 
     Parameters
@@ -123,6 +125,10 @@ def write_nc(filename, data_dict, units_dict=None, verbose=True):
         Variables dictionary
     units_dict : dict
         Unit dictionary
+    data_3D_time_dict : dict
+        3D varibale dictionary (time, Laititude, Longitude)
+    time_type : str
+        Data type for time
     verbose : logical
         Whether or not output more informations.
 
@@ -151,11 +157,15 @@ def write_nc(filename, data_dict, units_dict=None, verbose=True):
     Latitude_e  = data_dict['Latitude_e']
     Longitude_e = data_dict['Longitude_e']
 
-    # Dimensions of a netCDF file
+    # lat and lon dimensions of a netCDF file
     dim_lat = nc_f.createDimension('Latitude',  Latitude.shape[0])
     dim_lon = nc_f.createDimension('Longitude', Latitude.shape[1])
     dim_lat_e = nc_f.createDimension('Latitude_e',  Latitude_e.shape[0])
     dim_lon_e = nc_f.createDimension('Longitude_e', Latitude_e.shape[1])
+
+    # time dimension
+    if data_3D_time_dict is not None:
+        dim_time = nc_f.createDimension('time', None)
 
     # create variables in a netCDF file
 
@@ -177,6 +187,15 @@ def write_nc(filename, data_dict, units_dict=None, verbose=True):
                     ('Latitude', 'Longitude'))
             nc_var_dict[varname] = nc_var
 
+    # (time, Laititude, Longitude) variables
+    for varname in data_3D_time_dict:
+        if varname == 'time':
+            nc_var = nc_f.createVariable('time', time_type, ('time',))
+        else:
+            nc_var = nc_f.createVariable(varname, 'f4', 
+                    ('time', 'Latitude', 'Longitude'))
+        nc_var_dict[varname] = nc_var
+
     # write variables
 
     # lat and lon
@@ -185,8 +204,13 @@ def write_nc(filename, data_dict, units_dict=None, verbose=True):
     Latitude_e_v[:]  = Latitude_e
     Longitude_e_v[:] = Longitude_e
 
-    for varname in nc_var_dict:
-        nc_var_dict[varname][:] = data_dict[varname]
+    for varname in data_dict:
+        if not (varname in coord_name_list):
+            nc_var_dict[varname][:] = data_dict[varname]
+
+    if data_3D_time_dict is not None:
+        for varname in data_3D_time_dict:
+            nc_var_dict[varname][:] = data_3D_time_dict[varname]
 
     # add units
     if units_dict is not None:
