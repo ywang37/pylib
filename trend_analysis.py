@@ -186,6 +186,9 @@ def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True,
         trend_vmin=None, trend_vmax=None, 
         trend_cmap=plt.get_cmap('seismic'), trend_units='',
         sigma_units='',
+        region_limit=None,
+        xtick=np.arange(-180, 180.0, 60),
+        ytick=np.arange(-90, 90.1, 30),
         countries=True, states=True,
         mean_mask=None,
         ):
@@ -244,8 +247,13 @@ def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True,
 
         mean_p = cartopy_plot(lon_e, lat_e, mean, cbar_prop=cbar_prop,
                 countries=countries, states=states, cmap=mean_cmap,
+                xtick=xtick, ytick=ytick,
                 vmin=mean_vmin, vmax=mean_vmax)
         mean_p['cb'].set_label(mean_units)
+
+        if region_limit is not None:
+            mean_p['ax'].set_xlim((region_limit[1],region_limit[3]))
+            mean_p['ax'].set_ylim((region_limit[0],region_limit[2]))
 
         fig_mean = fig_dir + name + '_mean.png'
         plt.savefig(fig_mean, format='png', dpi=300)
@@ -258,8 +266,13 @@ def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True,
         trend_p = cartopy_plot(lon_e, lat_e, trend, cbar_prop=cbar_prop,
                 vmin=trend_vmin, vmax=trend_vmax,
                 countries=countries, states=states,
+                xtick=xtick, ytick=ytick,
                 cmap=trend_cmap)
         trend_p['cb'].set_label(trend_units)
+
+        if region_limit is not None:
+            trend_p['ax'].set_xlim((region_limit[1],region_limit[3]))
+            trend_p['ax'].set_ylim((region_limit[0],region_limit[2]))
 
         fig_trend = fig_dir + name + '_trend.png'
         plt.savefig(fig_trend, format='png', dpi=300)
@@ -274,8 +287,13 @@ def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True,
 
         # plot sigma
         sigma_p = cartopy_plot(lon_e, lat_e, sigma, cbar_prop=cbar_prop,
+                xtick=xtick, ytick=ytick,
                 countries=countries, states=states)
         sigma_p['cb'].set_label(sigma_units)
+
+        if region_limit is not None:
+            sigma_p['ax'].set_xlim((region_limit[1],region_limit[3]))
+            sigma_p['ax'].set_ylim((region_limit[0],region_limit[2]))
 
         # save sigma plot
         fig_sigma = fig_dir + name + '_sigma.png'
@@ -290,10 +308,14 @@ def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True,
         trend_signi_p = cartopy_plot(lon_e, lat_e, trend_signi, 
                 cbar_prop=cbar_prop,
                 countries=countries, states=states,
+                xtick=xtick, ytick=ytick,
                 vmin=trend_vmin, vmax=trend_vmax,
                 cmap=trend_cmap)
         trend_signi_p['cb'].set_label(trend_units)
 
+        if region_limit is not None:
+            trend_signi_p['ax'].set_xlim((region_limit[1],region_limit[3]))
+            trend_signi_p['ax'].set_ylim((region_limit[0],region_limit[2]))
 
         # save trends that are significant plot
         fig_trend_signi = fig_dir + name + '_trend_signi.png'
