@@ -5,6 +5,7 @@ Created on September 17, 2019
 """
 
 from area import area
+from copy import deepcopy
 import numpy as np
 
 #
@@ -380,6 +381,96 @@ def grid_area_1(lat_e, lon_int, nlon):
     area_2D = np.transpose(area_2D)
 
     return area_2D
+#
+#------------------------------------------------------------------------------
+#
+def region_ave_sum(in_data, in_weight=None,
+        flag_mask=None, 
+        lat=None, lon=None, region_limit=None):
+    """ Calculate average and sum in a region.
+    (Yi Wang, 06/30/2020)
+
+    Parameters
+    ----------
+    in_data : 2-D array
+        It should be a 2-D numpy
+    in_weight : 2-D array or None
+        If None, weights are 1 for every grid.
+    flag_mask : 2-D bool array
+        If None, all elements are False, which means no mask.
+    lat : 2-D array or None
+        Center latitudes
+    lon : 2-D array or None
+        Center longitudes
+    region_limit : list-like or None
+        [lat_min, lon_min, lat_max, lon_max]
+        If lat, lon, and region_limit are not None,
+        only use data in the region_limit.
+
+    Returns
+    -------
+    out_dict : dictionary
+        Keys: 'mean', 'sum', 'data', 'weight', 'final_flag'
+
+    """
+
+    # weight
+    if in_weight is None:
+        weight = np.full_like(in_data, 1.0, dtype=float)
+    else:
+        weight = deepcopy(in_weight)
+
+    # data
+    data = deepcopy(in_data)
+
+    # data mask
+    if isinstance(data, np.ma.core.MaskedArray):
+        data_mask = data.mask
+    else:
+        data_mask = np.full(data.shape, False)
+
+    # data nan
+    flag_data_nan = np.isnan(data)
+
+    # flag_mask
+    if flag_mask is None:
+        flag_mask = np.full(data.shape, False)
+
+    # region_mask
+    if (lat is not None) and (lat is not None) and \
+            (region_limit is not None):
+        region_mask= np.logical_not( \
+                region_limit_flag(lat, lon, region_limit) )
+    else:
+        region_mask = np.full(data.shape, False)
+
+    # final flag for elelemts that are not considered.
+    final_flag = np.logical_or(region_mask, np.logical_or(data_mask, \
+            np.logical_or(flag_data_nan, flag_mask)))
+
+    # nan 
+    data[final_flag]   = np.nan
+    weight[final_flag] = np.nan
+
+    # out_dict
+    out_dict = {}
+
+    # sum
+    out_dict['sum'] = np.nansum(data * weight)
+
+    # mean
+    out_dict['mean'] = out_dict['sum'] / np.nansum(weight)
+
+    # data
+    out_dict['data'] = data
+
+    # weight
+    out_dict['weight'] = weight
+
+    # final_flag
+    out_dict['final_flag'] = final_flag
+
+    return out_dict
 #
 #------------------------------------------------------------------------------
 #
