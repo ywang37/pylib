@@ -188,13 +188,14 @@ def write_nc(filename, data_dict, units_dict=None,
             nc_var_dict[varname] = nc_var
 
     # (time, Laititude, Longitude) variables
-    for varname in data_3D_time_dict:
-        if varname == 'time':
-            nc_var = nc_f.createVariable('time', time_type, ('time',))
-        else:
-            nc_var = nc_f.createVariable(varname, 'f4', 
-                    ('time', 'Latitude', 'Longitude'))
-        nc_var_dict[varname] = nc_var
+    if data_3D_time_dict is not None:
+        for varname in data_3D_time_dict:
+            if varname == 'time':
+                nc_var = nc_f.createVariable('time', time_type, ('time',))
+            else:
+                nc_var = nc_f.createVariable(varname, 'f4', 
+                        ('time', 'Latitude', 'Longitude'))
+            nc_var_dict[varname] = nc_var
 
     # write variables
 

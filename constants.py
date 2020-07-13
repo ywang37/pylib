@@ -19,6 +19,8 @@ mol_dryair = 28.97 # dry air
 
 mol_NO = 30.0 # Nitric oxide
 
+mol_NO2 = 46.0 # 
+
 ##################
 # unit conversions
 ##################
@@ -34,3 +36,13 @@ molec_to_kgN = 1.0 / avo * mol_N / 1e3
 
 # kg NO => ng N
 kg_NO_to_ng_N = 1e12 / mol_NO * mol_N
+
+# kg NO2 => ng N
+kg_NO2_to_ng_N = 1e12 / mol_NO2 * mol_N
+
+####################
+# time conversions
+###################
+
+# day to second
+day_to_second = 86400.0

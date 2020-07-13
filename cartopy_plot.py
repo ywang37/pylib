@@ -379,6 +379,7 @@ def cartopy_plot(*args, ax=None, fig=None,
         xtick=None,
         ytick=None,
         cl_res=None,
+        bad_c='darkgrey',
         region_limit=None,
         valid_min=None, valid_max=None,
         cbar=True, cbar_prop = {},
@@ -412,6 +413,8 @@ def cartopy_plot(*args, ax=None, fig=None,
     cl_res : str
         Coastline resolution. 
         Currently can be one of “110m”, “50m”, and “10m”
+    bad_c : str
+        The color for masked pixels
     region_limit : tuple-like or None
         (min_lat, min_lon, max_lat, max_lon)
     valid_min : float or None
@@ -499,6 +502,7 @@ def cartopy_plot(*args, ax=None, fig=None,
     # plot
     pout = pcolormesh(ax, lon, lat, var,
             valid_min=valid_min, valid_max=valid_max,
+            bad_c=bad_c,
             cbar=cbar, cbar_prop=cbar_prop,
             **kwargs)
     out_dict['mesh'] = pout['mesh']

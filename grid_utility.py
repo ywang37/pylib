@@ -6,7 +6,10 @@ Created on September 17, 2019
 
 from area import area
 from copy import deepcopy
+import matplotlib
 import numpy as np
+
+from mylib.cartopy_plot import cartopy_plot
 
 #
 #------------------------------------------------------------------------------
@@ -469,6 +472,66 @@ def region_ave_sum(in_data, in_weight=None,
 
     # final_flag
     out_dict['final_flag'] = final_flag
+
+    return out_dict
+#
+#------------------------------------------------------------------------------
+#
+def fill_region_color(lon, lat, region_flag_list, color_list,
+    region_limit=None, ax=None, fig=None,
+    xtick=None, ytick=None, cl_res=None,
+    countries=True, states=True):
+    """ Fill regions by different colors.
+    (ywang, 06/12/2020)
+
+    Parameters
+    ----------
+    lon : 2-D numpy array
+        2-D longitude
+    lat : 2-D numpy array
+        2-D latitude array
+    region_flag_list : list
+        Elements are region_flag, and a region_flag is a 2-D
+        bool array with True means the girds need to be filled.
+    color_list : list
+        Filled colors for each region.
+    region_limit : tuple-like or None
+        (min_lat, min_lon, max_lat, max_lon)
+    ax : GeoAxes or None (default)
+        Create a GeoAxes if ax is None. 
+    fig : plt.figure() or None (default)
+        Create a plt.figure() if both fig and ax are None
+    xtick : list-like
+        Longitude ticks
+    ytick : list-like
+        Latitude ticks
+    cl_res : str
+        Coastline resolution. 
+        Currently can be one of “110m”, “50m”, and “10m”
+
+    Returns
+    -------
+    out_dict :
+        keys : ax, fig, mesh
+
+    """
+
+    # region index
+    region_ind = np.full_like(region_flag_list[0], np.nan, dtype=float)
+
+    for i in range(len(region_flag_list)):
+
+        region_flag = region_flag_list[i]
+
+        region_ind[region_flag] = i + 0.5
+
+    # plot
+    out_dict = cartopy_plot(lon, lat, region_ind, ax=ax, fig=fig,
+            region_limit=region_limit, xtick=xtick, ytick=ytick,
+            cmap=matplotlib.colors.ListedColormap(color_list),
+            bad_c='white',
+            cbar=False, vmin=0.0, vmax=len(region_flag_list),
+            cl_res=cl_res, countries=countries, states=states)
 
     return out_dict
 #
