@@ -241,6 +241,20 @@ def get_center_index_2(value, start, end, step):
 #
 #------------------------------------------------------------------------------
 #
+def get_2D_center_index(lat_value, lat_edge, lon_value, lon_edge):
+    """ Get index of specific latitude or longitude through
+    call get_center_index.
+    (ywang, 06/27/20)
+
+    """
+
+    i = get_center_index(lat_edge, lat_value)
+    j = get_center_index(lon_edge, lon_value)
+
+    return i, j
+#
+#------------------------------------------------------------------------------
+#
 def get_2D_center_index_2(lat_value, lat_start, lat_end, lat_step,
         lon_value, lon_start, lon_end, lon_step):
     """ Get index of specific latitude or longitude through
