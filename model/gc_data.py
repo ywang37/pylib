@@ -4,7 +4,12 @@ Created on March 19, 2020
 @author: Yi Wang
 """
 
+from copy import deepcopy
+from netCDF4 import Dataset
+import numpy as np
 import os
+
+from mylib.io import read_nc
 
 #
 #------------------------------------------------------------------------------
@@ -125,10 +130,81 @@ def link_for_soil_temp(res, model, year, month, root_dir=None):
             '*.A3*.*.' + nc_suffix  + ' ' + new_data_dir)
     os.system('ln -sf ' + ori_data_dir + model_file + '.' + year + month +
             '*.I3.*.' + nc_suffix + ' ' + new_data_dir)
+#
+#------------------------------------------------------------------------------
+#
+def correct_BC(curr_file, pre_file, old_times=7):
+    """ Boundary conditions at the fisrt time is missing, we need
+    to fill the gap.
+    (ywang, 08/26/2020)
 
+    Parameters
+    ----------
+    curr_file : str
+        The file to be updated
+    pre_file : str or None
+        The file for boundary conditions at the fisrt time
+    old_times : int
+        The code execcute if the times in curr_file equals old_times
 
+    """
 
+    print(' - correct_BC: curr_file is: ' + curr_file)
+    print(' - correct_BC: pre_file is: ', pre_file)
 
+    # check time
+    curr_tmp = read_nc(curr_file, ['time'])
+    curr_times = curr_tmp['time'].shape[0]
+    if curr_times != old_times:
+        print(' - correct_BC: curr_times={}'.format(curr_times))
+        print(' - correct_BC: old_times={}'.format(old_times))
+        print(' - correct_BC: just skip.')
+        return
+
+    # copy file
+    curr_file_old = curr_file.split('.')
+    curr_file_old[-2] = curr_file_old[-2] + '_old'
+    curr_file_old = '.'.join(curr_file_old)
+    if not os.path.exists(curr_file_old):
+        os.system('cp ' + curr_file + ' ' + curr_file_old)
+
+    # open curr_file
+    f_curr = Dataset(curr_file, 'r+')
+
+    # open pre_file
+    if pre_file is not None:
+        f_pre = Dataset(pre_file, 'r')
+        # check data
+        curr_time_units = f_curr['time'].units
+        pre_time_units  = f_pre['time'].units
+        if (curr_time_units != curr_time_units):
+            print('curr_time_units is: ' + curr_time_units)
+            print('pre_time_units is: ' + pre_time_units)
+            exit()
+
+    # fill time
+    print(' - correct_BC: process time')
+    for i in np.array(range(curr_times))[::-1]:
+        f_curr['time'][i+1] = f_curr['time'][i]
+    if pre_file is not None:
+        f_curr['time'][0] =  f_pre['time'][0]
+    else:
+        f_curr['time'][0] =  0
+
+    # fill data
+    all_varns = list(f_curr.variables.keys())
+    for varn in all_varns:
+        if 'SpeciesBC_' in varn:
+            print(' - correct_BC: process ' + varn)
+            for i in np.array(range(curr_times))[::-1]:
+                f_curr[varn][i+1,:,:,:] = f_curr[varn][i,:,:,:]
+            if pre_file is not None:
+                f_curr[varn][0,:,:,:] =  f_pre[varn][0,:,:,:]
+
+    # close files
+    f_curr.close()
+    if pre_file is not None:
+        f_pre.close()
 #
 #------------------------------------------------------------------------------
 #

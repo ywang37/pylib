@@ -124,7 +124,7 @@ MERRA2.YYYYMMDD.%%%%%%.05x0625.nc4
 /as/scratch/bmy/MERRA2/processed/
 
 ==> 2 x 2.5 output
-T
+F
 MERRA2.YYYYMMDD.%%%%%%.2x25.nc4
 /Dedicated/jwang-data/GCDATA/GEOS_2x2.5/MERRA2_soil_T/YYYY/MM/
 /Dedicated/jwang-data/GCDATA/GEOS_2x2.5/MERRA2_soil_T/YYYY/MM/

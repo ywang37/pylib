@@ -5,6 +5,7 @@ Created on Feburary 4, 2020
 """
 
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 
 #
@@ -220,7 +221,7 @@ def right_center_label(ax, label):
 #
 #------------------------------------------------------------------------------
 #
-def multiFigure(nRow, nCol, **kwargs):
+def multiFigure(nRow, nCol, ocean_color='grey', **kwargs):
     """
     This function creates multi-figure layout...
 	
@@ -262,8 +263,19 @@ def multiFigure(nRow, nCol, **kwargs):
     bottom = kwargs.get('bottom', None)
     wspace = kwargs.get('wspace', None)
     hspace = kwargs.get('hspace', None)
+    countries = kwargs.get('countries', False)
+    states    = kwargs.get('states', False)
+    mask_ocean = kwargs.get('mask_ocean', False)
+    coastlines = kwargs.get('coastlines', False)
     gs = fig.add_gridspec(nRow_grid, nCol_grid, left=left, right=right,
             top=top, bottom=bottom, wspace=wspace, hspace=hspace)
+
+    if states:
+        states_provinces = cfeature.NaturalEarthFeature(
+                category='cultural',
+                name='admin_1_states_provinces_lines',
+                scale='50m',
+                facecolor='none')
 
 	
     for i in range(nRow):
@@ -273,6 +285,25 @@ def multiFigure(nRow, nCol, **kwargs):
                 instant = fig.add_subplot(gs[i*nUint:(i + 1)*nUint - nGap,  \
                         j*nUint:(j + 1)*nUint - nGap], \
                         projection=proj)
+
+                # countries
+                if countries:
+                    instant.add_feature(cfeature.BORDERS)
+
+                # states
+                if states:
+                    instant.add_feature(states_provinces, 
+                            edgecolor='k', linewidth=0.5)
+
+                # mask ocean
+                if mask_ocean:
+                    instant.add_feature(cfeature.OCEAN, 
+                            color=ocean_color, zorder=100)
+
+                # coastlines
+                if coastlines:
+                    instant.coastlines(zorder=300)
+
             else:
                 instant = fig.add_subplot(gs[i*nUint:(i + 1)*nUint - nGap,  \
                         j*nUint:(j + 1)*nUint - nGap]  )

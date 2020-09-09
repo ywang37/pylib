@@ -19,7 +19,7 @@ def drop_in_the_box(grid_dict, sat_lat, sat_lon, sat_var,
     Parameters
     ----------
     grid_dict : dict
-        *proj* is a compulsory key. Its vaule can be
+        'proj' is a compulsory key. Its vaule can be
         'PlateCarree', ......
         'PlateCarree': Starting point, Ending point, and Step
             are given. Keys are 'lat_start', 'lat_end',

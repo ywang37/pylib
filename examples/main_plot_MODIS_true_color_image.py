@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from mylib.cartopy_plot import add_geoaxes, pcolormesh
-from mylib.read_MODIS import get_modis_1km_rgb
+from mylib.pro_modis.read_MODIS import get_modis_1km_rgb
 
 filename = './MYD021KM.A2015344.0725.006.2015344193947.hdf'
 
