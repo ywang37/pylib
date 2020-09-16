@@ -2,9 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from mylib.cartopy_plot import add_geoaxes, pcolormesh
-from mylib.pro_modis.read_MODIS import get_modis_1km_rgb
+from mylib.pro_modis.read_modis import get_modis_1km_rgb
 
-filename = './MYD021KM.A2015344.0725.006.2015344193947.hdf'
+#filename = './MYD021KM.A2015344.0725.006.2015344193947.hdf'
+filename = '/Dedicated/jwang-data/ywang/project_global_CWA/1km/MODIS_data/\
+Gulf_of_Mexico/20181028/MYD021KM.A2018301.1825.061.2018302153109.hdf'
 
 # get data
 lat, lon, rgb = get_modis_1km_rgb(filename)
