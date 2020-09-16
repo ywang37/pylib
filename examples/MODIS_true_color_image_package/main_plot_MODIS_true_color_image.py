@@ -1,10 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mylib.cartopy_plot import add_geoaxes, pcolormesh
-from mylib.pro_modis.read_modis import get_modis_1km_rgb
+from cartopy_plot import add_geoaxes, pcolormesh
+from read_modis import get_modis_1km_rgb
 
-#filename = './MYD021KM.A2015344.0725.006.2015344193947.hdf'
 filename = 'MYD021KM.A2018301.1825.061.2018302153109.hdf'
 
 # get data
