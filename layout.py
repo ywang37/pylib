@@ -56,6 +56,51 @@ def h_1_ax(fig, ax, x_off=0.0, y_off=-0.1, ratio=0.06,
 #
 #------------------------------------------------------------------------------
 #
+def v_1_ax(fig, ax, x_off=0.1, y_off=0.0, ratio=0.06, 
+        height_add=0.0, width=None):
+    """ Add a colobar axes that is under one axes
+    for *fig*.
+
+    Parameters
+    ----------
+    fig : plt.figure() instance
+    ax : axes
+    x_off : float (default is 0.1)
+       Offset from *ax* left
+    y_off : float (default is 0.0)
+       Offset from *ax* bottom
+    ratio : float (default is 0.06)
+       The ratio of width to height of the colorbar axes when
+       the *width* is not specified
+    width_add : float (defaut is 0.0)
+       Default width colorbar axes equals that of *ax*.
+       *width_add* is used to change the width.
+    width : float (default is None)
+       The width of the colorbar axes, it override *ratio* when
+       *width* is not None, or *width* is determined by *ratio*
+
+    Returns
+     -------
+    cax : axes
+        A colobar axes that is under one axes for *fig*
+
+    """
+
+    # axes poaistion
+    pos = ax.get_position()
+
+    # cax
+    x0 = pos.x1 + x_off
+    y0 = pos.y0 + y_off
+    height = pos.height + height_add
+    if width is None:
+        width = height * ratio
+    cax = fig.add_axes([x0, y0, width, height])
+
+    return cax
+#
+#------------------------------------------------------------------------------
+#
 def h_2_ax(fig, ax1, ax2, y_off=-0.1, ratio=0.06, height=None):
     """ Add a colobar axes that is centerd under two axes
     for *fig*.
@@ -267,6 +312,7 @@ def multiFigure(nRow, nCol, ocean_color='grey', **kwargs):
     states    = kwargs.get('states', False)
     mask_ocean = kwargs.get('mask_ocean', False)
     coastlines = kwargs.get('coastlines', False)
+    cl_res = kwargs.get('cl_res', '110m')
     gs = fig.add_gridspec(nRow_grid, nCol_grid, left=left, right=right,
             top=top, bottom=bottom, wspace=wspace, hspace=hspace)
 
@@ -302,7 +348,7 @@ def multiFigure(nRow, nCol, ocean_color='grey', **kwargs):
 
                 # coastlines
                 if coastlines:
-                    instant.coastlines(zorder=300)
+                    instant.coastlines(zorder=300, resolution=cl_res)
 
             else:
                 instant = fig.add_subplot(gs[i*nUint:(i + 1)*nUint - nGap,  \

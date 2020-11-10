@@ -134,9 +134,17 @@ def read_mxd04(filename, varnames=[], verbose=False):
     # all variable names
     all_varnames = [
             'Latitude', 'Longitude',
+            'Aerosol_Cldmask_Land_Ocean',
+            'Corrected_Optical_Depth_Land',
             'Effective_Optical_Depth_Average_Ocean',
+            'Effective_Optical_Depth_Best_Ocean',
+            'Land_Ocean_Quality_Flag',
+            'Land_sea_Flag',
             'Mean_Reflectance_Ocean',
             'Optical_Depth_Land_And_Ocean',
+            'Optical_Depth_Small_Best_Ocean',
+            'Solution_Index_Ocean_Large',
+            'Solution_Index_Ocean_Small',
             ]
     all_varnames.extend(varnames)
     all_varnames = list(set(all_varnames))

@@ -208,3 +208,21 @@ def correct_BC(curr_file, pre_file, old_times=7):
 #
 #------------------------------------------------------------------------------
 #
+def add_units(filename, varname, units='1'):
+    """ Add *units* to varbiable *varname* in the netCDF
+    file *filename*
+    (Yi Wang, 09/21/2020)
+
+    """
+
+    # open file
+    f = Dataset(filename, 'r+')
+
+    # add units
+    f[varname].units = units
+
+    # close file
+    f.close()
+#
+#------------------------------------------------------------------------------
+#

@@ -522,6 +522,8 @@ def cartopy_plot_scatter(*args, ax=None, fig=None,
         region_limit=None,
         cbar=True, cbar_prop = {},
         title=None,
+        countries=False,
+        states=False,
         **kwargs):
     """ Plot scatter map.
     (Yi Wang, 11/27/2019)
@@ -555,6 +557,10 @@ def cartopy_plot_scatter(*args, ax=None, fig=None,
         Colorbar properties, transferred to plt.colorbar()
     title : str
         Title
+    countries : bool
+        Plot countries
+    states : bool
+        Plot states and provinces
     **kwargs : dict
         Keywords to pcolormesh
 

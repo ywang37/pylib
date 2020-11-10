@@ -328,6 +328,24 @@ def generate_grid_gc_2x25():
 #
 #------------------------------------------------------------------------------
 #
+def generate_grid_gc_na_05x0625():
+    """
+    """
+
+    lat_min =    9.75
+    lat_max =   70.25
+    lat_res =    0.5
+    lon_min = -140.3125
+    lon_max =  -39.6875
+    lon_res =    0.625
+
+    lat_e, lon_e, lat_c, lon_c = generate_grid_2(lat_res, lat_min, lat_max,
+            lon_res, lon_min, lon_max)
+
+    return lat_e, lon_e, lat_c, lon_c
+#
+#------------------------------------------------------------------------------
+#
 def get_index_gc_2x25(lat, lon, lat_e, lon_e):
     """
     """

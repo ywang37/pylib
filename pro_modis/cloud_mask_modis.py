@@ -9,9 +9,18 @@ import numpy as np
 #
 #------------------------------------------------------------------------------
 #
-def stddev_3x3(RefSb):
+def stddev_3x3(RefSb, flag_cal=None):
     """ Calculate 3x3 box standard deviation.
     (Yi Wang, 12/05/2019)
+
+    Parameters
+    ----------
+    RefSb : 2-D numpy array
+        TOA reflectance
+
+    flag_cal : 2-D numpy array
+        Only process pixels with flag_cal is True.
+        If flag_cal is None, all elements are set as True
 
     """
 
@@ -29,6 +38,10 @@ def stddev_3x3(RefSb):
     # False means standard deviation is not calculated.
     flag = np.full_like(RefSb, False)
 
+#    # flag_cal
+#    if flag_cal is None:
+
+
     #---------------------------------
     # 3x3 box standard deviation
     #---------------------------------
@@ -36,7 +49,6 @@ def stddev_3x3(RefSb):
     nline  = dim[0]
     npixel = dim[1]
     for i in range(0, nline, step):
-        print(i)
         for j in range(0, npixel, step):
 
             # index for a 3x3 box

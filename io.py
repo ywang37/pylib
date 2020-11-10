@@ -223,3 +223,107 @@ def write_nc(filename, data_dict, units_dict=None,
 #
 #------------------------------------------------------------------------------
 #
+def write_site_nc(filename, data_dict, units_dict=None,
+        data_2D_time_dict=None, time_type='int',
+        verbose=True):
+    """ Write site data to netCDF file.
+    (Yi Wang, 10/20/2020)
+
+    Parameters
+    ----------
+    filename : str
+        netCDF filename.
+    data_dict : dict
+        Variables dictionary
+    units_dict : dict
+        Unit dictionary
+    data_2D_time_dict : dict
+        2D varibale dictionary (time, site)
+    time_type : str
+        Data type for time
+    verbose : logical
+        Whether or not output more informations.
+
+    Returns
+    -------
+    None
+
+    """
+
+    coord_name_list = ['Latitude', 'Longitude']
+
+    str_name_list = ['site_code']
+
+    int_name_list = ['site_i', 'site_j']
+
+    if verbose:
+        print(' - save_ave: output ' + filename)
+
+    # open file
+    nc_f = Dataset(filename, 'w')
+
+    # grid,
+    Latitude    = data_dict['Latitude']
+    Longitude   = data_dict['Longitude']
+
+    # site number dimension
+    dim_site = nc_f.createDimension('site', Latitude.shape[0])
+
+    # time dimension
+    if data_2D_time_dict is not None:
+        dim_time = nc_f.createDimension('time', None)
+
+    # create variables in a netCDF file
+
+    # lat and lon
+    Latitude_v  = nc_f.createVariable('Latitude',  'f4', ('site',))
+    Longitude_v = nc_f.createVariable('Longitude', 'f4', ('site',))
+
+    # variables
+    nc_var_dict = {}
+    for varname in data_dict:
+
+        if not (varname in coord_name_list+str_name_list+int_name_list):
+            nc_var = nc_f.createVariable(varname, 'f4', ('site',))
+            nc_var_dict[varname] = nc_var
+        elif varname in str_name_list:
+            nc_var = nc_f.createVariable(varname, str, ('site',))
+            nc_var_dict[varname] = nc_var
+        elif varname in int_name_list:
+            nc_var = nc_f.createVariable(varname, int, ('site',))
+            nc_var_dict[varname] = nc_var
+
+    # (time, site) variables
+    if data_2D_time_dict is not None:
+        for varname in data_2D_time_dict:
+            if varname == 'time':
+                nc_var = nc_f.createVariable('time', time_type, ('time',))
+            else:
+                nc_var = nc_f.createVariable(varname, 'f4',
+                        ('time', 'site'))
+            nc_var_dict[varname] = nc_var
+
+    # write variables
+
+    # lat and lon
+    Latitude_v[:]  = Latitude
+    Longitude_v[:] = Longitude
+
+    for varname in data_dict:
+        if not (varname in coord_name_list):
+            nc_var_dict[varname][:] = data_dict[varname]
+
+    if data_2D_time_dict is not None:
+        for varname in data_2D_time_dict:
+            nc_var_dict[varname][:] = data_2D_time_dict[varname]
+
+    # add units
+    if units_dict is not None:
+        for varname in units_dict:
+            nc_var_dict[varname].units = units_dict[varname]
+
+    # close file
+    nc_f.close()
+#
+#------------------------------------------------------------------------------
+#
