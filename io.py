@@ -111,7 +111,8 @@ def read_nc(filename, varnames, verbose=False,
 #
 #------------------------------------------------------------------------------
 #
-def write_nc(filename, data_dict, units_dict=None, 
+def write_nc(filename, data_dict, units_dict=None,
+        data_1D_time_dict=None,
         data_3D_time_dict=None, time_type='int',
         verbose=True):
     """ Write 2-D, 3-D fields to netCDF file
@@ -125,6 +126,8 @@ def write_nc(filename, data_dict, units_dict=None,
         Variables dictionary
     units_dict : dict
         Unit dictionary
+    data_1D_time_dict : dict
+        3D varibale dictionary (time,)
     data_3D_time_dict : dict
         3D varibale dictionary (time, Laititude, Longitude)
     time_type : str
@@ -164,7 +167,8 @@ def write_nc(filename, data_dict, units_dict=None,
     dim_lon_e = nc_f.createDimension('Longitude_e', Latitude_e.shape[1])
 
     # time dimension
-    if data_3D_time_dict is not None:
+    if (data_1D_time_dict is not None) or \
+            (data_3D_time_dict is not None):
         dim_time = nc_f.createDimension('time', None)
 
     # create variables in a netCDF file
@@ -185,6 +189,15 @@ def write_nc(filename, data_dict, units_dict=None,
         if not (varname in coord_name_list):
             nc_var = nc_f.createVariable(varname, 'f4',
                     ('Latitude', 'Longitude'))
+            nc_var_dict[varname] = nc_var
+
+    # (time, ) varibales
+    if data_1D_time_dict is not None:
+        for varname in data_1D_time_dict:
+            if varname == 'time':
+                nc_var = nc_f.createVariable('time', time_type, ('time',))
+            else:
+                nc_var = nc_f.createVariable(varname, 'f4', ('time',))
             nc_var_dict[varname] = nc_var
 
     # (time, Laititude, Longitude) variables
@@ -208,6 +221,10 @@ def write_nc(filename, data_dict, units_dict=None,
     for varname in data_dict:
         if not (varname in coord_name_list):
             nc_var_dict[varname][:] = data_dict[varname]
+
+    if data_1D_time_dict is not None:
+        for varname in data_1D_time_dict:
+            nc_var_dict[varname][:] = data_1D_time_dict[varname]
 
     if data_3D_time_dict is not None:
         for varname in data_3D_time_dict:
