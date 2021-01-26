@@ -12,6 +12,7 @@ import numpy as np
 from mylib.cartopy_plot import cartopy_plot, cartopy_plot_scatter
 from mylib.colormap.gbcwpry_map import gbcwpry_map
 from mylib.colormap.WhGrYlRd_map import WhGrYlRd_map
+from mylib.grid_utility import get_center_index_latlon
 from mylib.layout import multiFigure, h_1_ax, h_2_ax, panel_tick_label
 from mylib.layout import right_center_label
 
@@ -173,6 +174,7 @@ def plot_comparison_2(var1, var2, lat_e, lon_e,
         cl_color='k',
         lw=None,
         region_limit=None,
+        region_limit_2=None,
         xticks=np.arange(-180, 180.0, 60),
         yticks=np.arange(-90, 90.1, 30),
         title_dict={},
@@ -221,6 +223,11 @@ def plot_comparison_2(var1, var2, lat_e, lon_e,
 
     """
 
+    if region_limit is not None:
+        i1, i2, j1, j2 = \
+                get_center_index_latlon(lat_e[:,0], lon_e[0,:], region_limit)
+
+
     # define figure
     nrow = 2
     ncol = 2
@@ -261,6 +268,13 @@ def plot_comparison_2(var1, var2, lat_e, lon_e,
     rel_pct_pout = cartopy_plot(lon_e, lat_e, rel_pct, ax=ax, title=title,
             cbar=False, vmin=rel_pct_vmin, vmax=rel_pct_vmax,
             cmap=deepcopy(rel_pct_cmap))
+    if region_limit is None:
+        sub_rel_pct = rel_pct
+    else:
+        sub_rel_pct = rel_pct[i1:i2+1,j1:j2+1]
+    print('plot_comparison_2:')
+    print('rel_pct min={:}, max={:}'.format(np.nanmin(sub_rel_pct), 
+        np.nanmax(sub_rel_pct)))
 
     # plot var2 - var1
     diff = var2 - var1
@@ -281,6 +295,9 @@ def plot_comparison_2(var1, var2, lat_e, lon_e,
         if region_limit is not None:
             ax.set_xlim((region_limit[1],region_limit[3]))
             ax.set_ylim((region_limit[0],region_limit[2]))
+        if region_limit_2 is not None:
+            ax.set_xlim((region_limit_2[1],region_limit_2[3]))
+            ax.set_ylim((region_limit_2[0],region_limit_2[2]))
 
     # colorbar for var1 and var2
     cax1 = h_2_ax(fig, axes[0], axes[1],ratio=cb_ratio, y_off=cb_y_off_t)

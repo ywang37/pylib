@@ -89,6 +89,7 @@ def modis_coastal_mask_pixel(all_ref):
     diff_554_thre = 0.01
 
     band = np.array( [0.466, 1.241, 1.628, 2.113] )
+    out_dict['regress_band'] = band
 
     # if any vaule in all_ref is nan, mask is set as True
     if np.any(np.isnan(all_ref)):
@@ -108,6 +109,11 @@ def modis_coastal_mask_pixel(all_ref):
         # ref_554 calculated from power law
         cal_ref_554 = np.log(0.544) * slope + intercept
         cal_ref_554 = np.exp(cal_ref_554)
+
+        # cal_ref
+        cal_ref = np.log(band) * slope + intercept
+        cal_ref = np.exp(cal_ref)
+        out_dict['regress_band_cal_ref'] = cal_ref
 
         # observational ref_554
         ref_554 = all_ref[1]

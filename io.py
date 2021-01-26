@@ -112,6 +112,7 @@ def read_nc(filename, varnames, verbose=False,
 #------------------------------------------------------------------------------
 #
 def write_nc(filename, data_dict, units_dict=None,
+        longname_dict=None,
         data_1D_time_dict=None,
         data_3D_time_dict=None, time_type='int',
         verbose=True):
@@ -126,6 +127,8 @@ def write_nc(filename, data_dict, units_dict=None,
         Variables dictionary
     units_dict : dict
         Unit dictionary
+    longname_dict : dict
+        Long name dictionary
     data_1D_time_dict : dict
         3D varibale dictionary (time,)
     data_3D_time_dict : dict
@@ -234,6 +237,11 @@ def write_nc(filename, data_dict, units_dict=None,
     if units_dict is not None:
         for varname in units_dict:
             nc_var_dict[varname].units = units_dict[varname]
+
+    # add longname
+    if longname_dict is not None:
+        for varname in longname_dict:
+            nc_var_dict[varname].longname = longname_dict[varname]
 
     # close file
     nc_f.close()
