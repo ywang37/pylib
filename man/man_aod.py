@@ -134,7 +134,7 @@ def get_man_550_aod(in_file, out_dir=None):
         'aod500': aod500,
         'aod550': aod550,
         'aod675': aod675,
-        AE_band: AE_calculated,
+#        AE_band: AE_calculated,
         'lat': lat,
         'lon': lon,
         }
@@ -144,7 +144,7 @@ def get_man_550_aod(in_file, out_dir=None):
 
     if out_dir is not None:
         print(' - Output ' + out_file)
-        df.to_csv(out_file)
+        df.to_csv(out_file, index=False)
 
     return df
 #

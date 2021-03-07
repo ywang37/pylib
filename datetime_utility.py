@@ -3,9 +3,12 @@ Created on September 7, 2019
 
 @author: Yi Wang
 """
-
+from astropy.time import Time
 import datetime
 
+#
+#------------------------------------------------------------------------------
+#
 def get_day_of_year(curr_date):
     """ Get day of year of *curr_date*
 
@@ -30,7 +33,9 @@ def get_day_of_year(curr_date):
     day_of_year = diff.days + 1
 
     return day_of_year
-
+#
+#------------------------------------------------------------------------------
+#
 def day_of_year_to_date(year_doy):
     """ Given day of year, output date
 
@@ -56,3 +61,30 @@ def day_of_year_to_date(year_doy):
     curr_date = str(curr_date_d)[0:10]
 
     return curr_date
+#
+#------------------------------------------------------------------------------
+#
+def tai_st(ymdhms, st='1993-01-01T00:00:00'):
+    """ TAI seconds since *st*
+
+    Parameters
+    ----------
+    ymdhms : str
+        'yyyy-mm-ddThh:MM:ss', for example '2021-03-04T11:12:00'
+    st : str
+        'yyyy-mm-ddThh:MM:ss', for example '1993-01-01T00:00:00'
+
+    Returns
+    -------
+    TAI : float
+        TAI since *st*
+
+    """
+
+    one_day_TAI = 24 * 3600E0
+    TAI = (Time(ymdhms).jd - Time(st).jd) * one_day_TAI
+
+    return TAI
+#
+#------------------------------------------------------------------------------
+#
