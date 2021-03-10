@@ -388,6 +388,9 @@ def save_collocation_to_dict(collocation_result, TAI93, site_var, site_var_N,
     collocation_result[site_name][site_var_N_name].append(site_var_N)
 
     # sat_result
+    #print(sat_result)
+    #print(site_name)
+    #print(collocation_result[site_name].keys())
     for key in sat_result:
         sat_var   = sat_result[key][0]
         sat_var_N = sat_result[key][1]
