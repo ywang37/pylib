@@ -212,7 +212,7 @@ class ModTaylorDiagram(object):
         self.bias_vmax = max(biases)
     norm = mcolors.Normalize(vmin=self.bias_vmin,vmax=self.bias_vmax)
     for i in range(len(marker)):
-        self.sc = self.polar_ax.scatter(thetas[i], std[i], c=biases[i], \
+        self.sc = self.polar_ax.scatter([thetas[i]], [std[i]], c=[biases[i]], \
                 s=self.s, cmap=self.cmap, norm=norm, marker=marker[i], \
                 edgecolors='k')
     for i, tag in enumerate(point_tags):                         
@@ -502,7 +502,7 @@ class ZoomInTaylorDiagram(object):
         self.bias_vmax = max(biases)
     norm = mcolors.Normalize(vmin=self.bias_vmin,vmax=self.bias_vmax)
     for i in range(len(marker)):
-        self.sc = self.polar_ax.scatter(thetas[i], std[i], c=biases[i], \
+        self.sc = self.polar_ax.scatter([thetas[i]], [std[i]], c=[biases[i]], \
                 s=self.s, cmap=self.cmap, norm=norm, marker=marker[i], \
                 edgecolors='k')
     for i, tag in enumerate(point_tags):                         
