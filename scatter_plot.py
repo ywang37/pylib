@@ -231,3 +231,48 @@ def scatter(ax, in_x_data, in_y_data, \
                 color=text_color)
     
     return paths, slope, intercept
+#
+#------------------------------------------------------------------------------
+#
+def plot_ee(ax, x, y, 
+        high_slope=0.1, high_intercept=0.05,
+        low_slope=0.1, low_intercept=0.05,
+        vmin=0.0, vmax=5.0):
+    """ Plot expected error envelop.
+    +(high_intercept + high_slope * AOD)
+    -(low_intercept  + low_slope  * AOD)
+    (Yi Wang, 03/17/2021)
+    """
+
+    # expected error line
+    xx = np.array([vmin, vmax])
+    h_yy = xx + high_intercept + high_slope * xx
+    l_yy = xx - low_intercept - low_slope * xx
+    ax.plot(xx, h_yy, 'k--')
+    ax.plot(xx, l_yy, 'k--')
+
+    # stattistics according to expected error
+    high_bound = x + high_intercept + high_slope * x
+    high_result = (y-high_bound) > 0.0
+    high_count = len(x[high_result])
+    low_bound = x - low_intercept - low_slope * x
+    low_result = (y-low_bound) < 0.0
+    low_count = len(x[low_result])
+    N = len(x)
+    center_count = N - high_count - low_count
+    if N > 0:
+        high_ratio   = high_count   / float(N)
+        low_ratio    = low_count    / float(N)
+        center_ratio = center_count / float(N)
+        label = 'within EE={:4.1f}%\n'.format(center_ratio*100) + \
+                'above EE={:4.1f}%\n'.format(high_ratio*100) + \
+                'below EE={:4.1f}%'.format(low_ratio*100)
+        posXY0      = (1, 0)
+        posXY_text0 = (-5, 5)
+        ax.annotate(label, xy=posXY0, xytext=posXY_text0,
+                va='bottom',  ha='right',
+                xycoords='axes fraction', textcoords='offset points',
+                color='k')
+#
+#------------------------------------------------------------------------------
+#

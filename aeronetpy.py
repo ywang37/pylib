@@ -5,6 +5,12 @@ Created on Fri Mar 23 18:35:06 2018
 @author: Menk
 """
 
+from astropy.time import Time
+import numpy as np
+import pandas as pd
+
+from mylib.pro_aerosol import cal_ae, interpolate_aod
+
 #----------------------------------------------------------------------------
 
 def convertDate(dates, inputformat = 'dd:mm:yyyy', outputformat = 'yyyy-mm-dd',JDNon = False):
@@ -308,3 +314,172 @@ def get_tau(alpha, tau0, lamda0, lamda):
 	tau = tau0 * (lamda / lamda0)**(-alpha) 
 	
 	return tau
+#
+#------------------------------------------------------------------------------
+#
+def extract_aeronet_aod551nm(in_file):
+    """ Extract 551 nm AOD, and use it as 550 nm AOD.
+    (Yi Wang, 03/16/2021)
+
+    Parameters
+    ----------
+    in_file : str
+        AERONET input file
+
+    Returns
+    -------
+    df : panda data frame or None
+
+    """
+
+    varnames = (
+            'AOD_551nm',
+            'Site_Latitude(Degrees)',
+            'Site_Longitude(Degrees)',
+            )
+
+    # read aeronet data
+    data = readAeronet(in_file, vars=varnames)
+    if isinstance(data, list):
+        return None
+
+    # replace nan by -999.0
+    data.pop('DailyIndex')
+    data = pd.DataFrame(data)
+    data = data.fillna(-999.0)
+
+    ymd = np.array(data['Date'],dtype=str)
+    hms = np.array(data['Time'],dtype=str)
+    aod551 = data['AOD_551nm']
+    lat = data['Site_Latitude(Degrees)']
+    lon = data['Site_Longitude(Degrees)']
+
+    # filter data
+    flag = (aod551 > 0.0)
+    ymd = ymd[flag]
+    hms = hms[flag]
+    aod551 = aod551[flag]
+    lat = lat[flag]
+    lon = lon[flag]
+
+    # convert date to seconds since 1993-1-1 00:00:00
+    ymdhms = np.core.defchararray.add(ymd,
+                np.core.defchararray.add('T', hms))
+    one_day_TAI = 24 * 3600E0
+    TAI93 = (Time(ymdhms).jd - Time('1993-01-01T00:00:00').jd) * one_day_TAI
+
+    # save to csv
+    # use 551 nm AOD to represent 550 nm AOD
+    df = {
+         'ymd': ymd,
+         'hms': hms,
+         'TAI93': TAI93,
+         'aod550': aod551,
+         'lat': lat,
+         'lon': lon,
+         }
+    df = pd.DataFrame(df)
+
+    return df 
+#
+#------------------------------------------------------------------------------
+#
+def calc_aeronet_aod550nm(site_file):
+    """ read AERONET data and convert to 550 nm AOD.
+    (Yi Wang, 03/16/2021)
+
+    Parameters
+    ----------
+    site_file : str
+        AERONET filename
+
+
+    Returns
+    -------
+
+    """
+
+    varnames = (
+            'AOD_440nm',
+            'AOD_675nm',
+            '440-675_Angstrom_Exponent',
+            'Site_Latitude(Degrees)',
+            'Site_Longitude(Degrees)',
+            )
+
+    # read aeronet data
+    data = readAeronet(site_file, vars=varnames)
+
+    # Use 551 nm AOD to represent 550 nm AOD
+    if isinstance(data, list):
+        print('- calc_aeronet_aod550nm: ' + \
+                'Use 551 nm AOD to represent 550 nm AOD')
+        return extract_aeronet_aod551nm(site_file)
+
+    # replace nan by -999.0
+    data.pop('DailyIndex')
+    data = pd.DataFrame(data)
+    data = data.fillna(-999.0)
+    ymd = np.array(data['Date'],dtype=str)
+    hms = np.array(data['Time'],dtype=str)
+    aod440 = data['AOD_440nm']
+    aod675 = data['AOD_675nm']
+    AE = data['440-675_Angstrom_Exponent']
+    lat = data['Site_Latitude(Degrees)']
+    lon = data['Site_Longitude(Degrees)']
+
+    # filter data
+    flag = np.logical_and(AE>0.0, np.logical_and(aod440>0, aod675>0))
+    ymd = ymd[flag]
+    hms = hms[flag]
+    aod440 = aod440[flag]
+    aod675 = aod675[flag]
+    AE = AE[flag]
+    lat = lat[flag]
+    lon = lon[flag]
+
+    # calculate angstrom exponent
+    AE_calculated = cal_ae(440.0, 675.0, aod440, aod675)
+
+    # interpolate aod550
+    aod550 = interpolate_aod(440.0, aod440, AE, 550.0)
+
+    # convert date to seconds since 1993-1-1 00:00:00
+    ymdhms = np.core.defchararray.add(ymd,
+            np.core.defchararray.add('T', hms))
+    one_day_TAI = 24 * 3600E0
+    TAI93 = (Time(ymdhms).jd - Time('1993-01-01T00:00:00').jd) * one_day_TAI
+
+    # save to csv
+    df = {
+        'ymd': ymd,
+        'hms': hms,
+        'TAI93': TAI93,
+        'aod440': aod440,
+        'aod550': aod550,
+        'aod675': aod675,
+        'AE': AE,
+        'AE_calculated': AE_calculated,
+        'lat': lat,
+        'lon': lon,
+        }
+    df = pd.DataFrame(df)
+
+    return df
+#
+#------------------------------------------------------------------------------
+#
+def read_processed_aeronet(filename, var=[]):
+    """ Read processed AERONET file. """
+
+    varnames = ['ymd', 'hms', 'TAI93', 'aod550', 'lat', 'lon']
+    varnames.extend(var)
+    varnames = set(varnames)
+    varnames = list(varnames)
+
+    data = pd.read_csv(filename, usecols=varnames)
+
+    return data
+#
+#------------------------------------------------------------------------------
+#

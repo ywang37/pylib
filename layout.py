@@ -58,7 +58,7 @@ def h_1_ax(fig, ax, x_off=0.0, y_off=-0.1, ratio=0.06,
 #
 def v_1_ax(fig, ax, x_off=0.1, y_off=0.0, ratio=0.06, 
         height_add=0.0, width=None):
-    """ Add a colobar axes that is under one axes
+    """ Add a colobar axes that is on the right of one axes
     for *fig*.
 
     Parameters
@@ -139,6 +139,57 @@ def h_2_ax(fig, ax1, ax2, y_off=-0.1, ratio=0.06, height=None):
     width = pos2.x0+pos2.width / 2.0 - (pos1.x0 + pos1.width / 2.0)
     if height is None:
         height = width * ratio
+
+    cax = fig.add_axes([x0, y0, width, height])
+
+    return cax
+#
+#------------------------------------------------------------------------------
+#
+def v_2_ax(fig, ax1, ax2, x_off=0.1, y_off=0.0, ratio=0.06,
+                height_add=0.0, width=None):
+    """ Add a colobar axes that is on the right of two axes
+    for *fig*.
+
+    Parameters
+    ----------
+    fig : plt.figure() instance
+    ax1 : axes
+        Top axes
+    ax2 : axes
+        Bottom axes
+    x_off : float (default is 0.1)
+        Offset from ax1(ax2) right
+    y_off : float (default is 0.0)
+        Offset from ax2 center
+    ratio : float (default is 0.06)
+        The ratio of width to height of the colorbar axes when
+        the *width* is not specified
+    width_add : float (defaut is 0.0)
+        Default width colorbar axes equals that of *ax*.
+        *width_add* is used to change the width.
+    width : float (default is None)
+        The width of the colorbar axes, it override *ratio* when
+        *width* is not None, or *width* is determined by *ratio*
+
+    Returns
+    -------
+    cax : axes
+        A colobar axes that is under one axes for *fig*
+
+    """
+
+    # axes position
+    pos1 = ax1.get_position()
+    pos2 = ax2.get_position()
+
+    # cax
+    x0 = pos2.x1 + x_off
+    y0 = pos2.y0 + pos2.height / 2.0 + y_off
+    height = pos1.y0 + pos1.height / 2.0 - \
+            (pos2.y0 + pos2.height / 2.0) + height_add
+    if width is None:
+        width = height * ratio
     cax = fig.add_axes([x0, y0, width, height])
 
     return cax
