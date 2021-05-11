@@ -7,6 +7,10 @@ Created on September 25, 2019
 import numpy as np
 import scipy.stats as ss
 
+
+#
+#------------------------------------------------------------------------------
+#
 def NMSE_mean(obs, est):
     """ Normalized mean squared error.
     (normalized by mean(obs) * mean(est))
@@ -27,7 +31,9 @@ def NMSE_mean(obs, est):
     result = np.mean((est-obs) ** 2) / (np.mean(est) * np.mean(obs))
 
     return result
-
+#
+#------------------------------------------------------------------------------
+#
 def NMSE_var(obs, est):
     """ Normalized mean squared error.
     (normalized by variance(obs))
@@ -48,7 +54,9 @@ def NMSE_var(obs, est):
     result = np.mean((est-obs) ** 2) / np.var(obs, ddof=1)
 
     return result
-
+#
+#------------------------------------------------------------------------------
+#
 def MSE(obs, est):
     """ Mean squared error.
 
@@ -68,7 +76,9 @@ def MSE(obs, est):
     result = np.mean((est-obs) ** 2)
 
     return result
-
+#
+#------------------------------------------------------------------------------
+#
 def RMSE(obs, est):
     """ Root mean squared error.
 
@@ -88,7 +98,31 @@ def RMSE(obs, est):
     result = np.sqrt(np.mean((est-obs) ** 2))
 
     return result
+#
+#------------------------------------------------------------------------------
+#
+def MAE(obs, est):
+    """ Mean absolute error.
 
+    Parameters
+    ----------
+    obs : numpy array
+        Observations
+    est : numpy array
+        Estimations
+
+    Returns
+    -------
+    result : float
+
+    """
+
+    result = np.mean( np.absolute(est-obs) )
+
+    return result
+#
+#------------------------------------------------------------------------------
+#
 def MB(obs, est):
     """ Mean bias.
 
@@ -108,7 +142,9 @@ def MB(obs, est):
     result = np.mean(est) - np.mean(obs)
 
     return result
-    
+#
+#------------------------------------------------------------------------------
+#
 def NMB(obs, est):
     """ Normalized mean bias
 
@@ -128,7 +164,9 @@ def NMB(obs, est):
     result = (np.mean(est) - np.mean(obs)) / np.mean(obs)
 
     return result
-
+#
+#------------------------------------------------------------------------------
+#
 def NCRMSE(obs, est, norm=True):
     """ (Normalized) centralized root mean squared error
 
@@ -166,17 +204,6 @@ def NCRMSE(obs, est, norm=True):
         return ncrmse
     else:
         return crmse
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
+#
+#------------------------------------------------------------------------------
+#
