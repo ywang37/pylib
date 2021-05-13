@@ -130,6 +130,10 @@ def scatter(ax, in_x_data, in_y_data, \
     mse = ms.MSE(x_data, y_data)
     mse_s = 'MSE = {:.2f}'.format(mse)
 
+    # mean absolute error
+    mae = ms.MAE(x_data, y_data)
+    mae_s = 'MAE = {:.3f}'.format(mae)
+
     # root mean squared error
     rmse = ms.RMSE(x_data, y_data)
     rmse_s = 'RMSE = {:.2f}'.format(rmse)
@@ -164,6 +168,7 @@ def scatter(ax, in_x_data, in_y_data, \
             'rmse': rmse_s,
             'ncrmse': ncrmse_s,
             'mse': mse_s,
+            'mae': mae_s,
             'N': N_s,
             'mb': mb_s,
             'nmb': nmb_s,
@@ -180,6 +185,7 @@ def scatter(ax, in_x_data, in_y_data, \
             'rmse',
             'ncrmse',
             'mse',
+            'mae',
             'mb',
             'nmb',
             'nmse_mean',
