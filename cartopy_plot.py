@@ -596,7 +596,8 @@ def cartopy_plot_scatter(*args, ax=None, fig=None,
     if ax is None:
         if fig is None:
             fig = plt.figure()
-        ax = add_geoaxes(fig, cl_res=cl_res, xtick=xtick, ytick=ytick)
+        ax = add_geoaxes(fig, cl_res=cl_res, xtick=xtick, ytick=ytick,
+                countries=countries, states=states)
 
     # set region limit
     if region_limit is not None:
@@ -619,6 +620,9 @@ def cartopy_plot_scatter(*args, ax=None, fig=None,
             **kwargs)
     out_dict['paths'] = pout['paths']
     out_dict['cb'] = pout.get('cb', None)
+
+    out_dict['fig'] = fig
+    out_dict['ax']  = ax
 
     return out_dict
 
