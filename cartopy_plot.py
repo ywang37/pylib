@@ -27,6 +27,7 @@ def add_geoaxes(fig, *args,
         cl_color=None,
         lw=None,
         title=None,
+        coastlines=True,
         countries=False,
         states=False,
         **kwargs):
@@ -54,6 +55,8 @@ def add_geoaxes(fig, *args,
         Currently can be one of “110m”, “50m”, and “10m”
     title : str or None(default)
         title
+    coastlines : bool
+        Plot coastlines
     countries : bool
         Plot countries
     states : bool
@@ -79,7 +82,8 @@ def add_geoaxes(fig, *args,
 
     if cl_color is None:
         cl_color = 'black'
-    ax.coastlines(resolution=cl_res, color=cl_color, lw=lw)
+    if coastlines:
+        ax.coastlines(resolution=cl_res, color=cl_color, lw=lw)
 
     if countries:
         ax.add_feature(cfeature.BORDERS)
@@ -522,6 +526,7 @@ def cartopy_plot_scatter(*args, ax=None, fig=None,
         region_limit=None,
         cbar=True, cbar_prop = {},
         title=None,
+        coastlines=True,
         countries=False,
         states=False,
         **kwargs):
@@ -557,6 +562,8 @@ def cartopy_plot_scatter(*args, ax=None, fig=None,
         Colorbar properties, transferred to plt.colorbar()
     title : str
         Title
+    coastlines : bool
+        plot coastlines
     countries : bool
         Plot countries
     states : bool
@@ -597,6 +604,7 @@ def cartopy_plot_scatter(*args, ax=None, fig=None,
         if fig is None:
             fig = plt.figure()
         ax = add_geoaxes(fig, cl_res=cl_res, xtick=xtick, ytick=ytick,
+                coastlines=coastlines,
                 countries=countries, states=states)
 
     # set region limit
