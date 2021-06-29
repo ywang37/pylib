@@ -140,7 +140,7 @@ class trend_analysis():
         self.trend_std = self.noise_std / \
                 ((len(x)/12.0)**1.5) * np.sqrt((1.0+self.r1)/(1.0-self.r1))
 
-    def analysis_yearly(self, yy):
+    def analysis_yearly(self, yy, xx=None):
         """ for year data
         use np.nan to fill missing year.
         (ywang, 05/22/20)
@@ -150,7 +150,8 @@ class trend_analysis():
         self.fit_model = self.model_0
 
         # get model parameters
-        xx = np.array(range(len(yy)), dtype=float)
+        if xx is None:
+            xx = np.array(range(len(yy)), dtype=float)
         flag = np.logical_not( np.isnan(yy) )
         x = xx[flag]
         y = yy[flag]
@@ -168,19 +169,39 @@ class trend_analysis():
         # calculate noise
         self.noise = y - self.y_fit
 
-        # noise autocorrelation coefficient and standard deviation
-        n_noise        = len(self.noise)
-        self.r1        = np.corrcoef(self.noise[0:n_noise-1], \
-                                     self.noise[1:n_noise])[0,1]
-        self.noise_std = np.std(self.noise)
+        ########################################################
+        # sampling distributions of the regression coefficients
+        ########################################################
 
-        # 
-        self.epsilon_std = np.sqrt(self.noise_std**2 * (1-self.r1**2))
+        # error sum of squares
+        SSE = np.sum(self.noise ** 2)
 
-        # standard deviation of trend
-        self.trend_std = self.noise_std / \
-                (len(x)**1.5) * np.sqrt((1.0+self.r1)/(1.0-self.r1))
-#
+        #
+        x_mean = np.mean(x)
+        SSxx = np.sum((x - x_mean) ** 2)
+
+        # number of sample
+        n_noise = len(self.noise)
+
+        # sampling standard deviation of slope
+        self.trend_std = np.sqrt( (SSE / (n_noise - 2.0)) / SSxx )
+
+
+        ###############################################################
+        ## noise autocorrelation coefficient and standard deviation
+        #n_noise        = len(self.noise)
+        #self.r1        = np.corrcoef(self.noise[0:n_noise-1], \
+        #                             self.noise[1:n_noise])[0,1]
+        #self.noise_std = np.std(self.noise)
+        #
+        ## 
+        #self.epsilon_std = np.sqrt(self.noise_std**2 * (1-self.r1**2))
+        #
+        ## standard deviation of trend
+        #self.trend_std = self.noise_std / \
+        #        (len(x)**1.5) * np.sqrt((1.0+self.r1)/(1.0-self.r1))
+        ###############################################################
+
 #------------------------------------------------------------------------------
 #
 def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True, 
