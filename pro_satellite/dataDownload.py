@@ -38,7 +38,7 @@ def get_data(product, date, cord, rootDir, **kwargs):
 	
 	print(' - get_data:', product)
 	
-	appKey	= kwargs.get('appKey', 'Bearer B6148868-1922-11E9-A62B-CCB570C49BBF')
+	appKey	= kwargs.get('appKey', 'Bearer d2FuZ3lzZWE6ZVdrdGQyRnVaeTAwUUhWcGIzZGhMbVZrZFE9PToxNjI0ODk5NzY4OjkwNTEyZmZhMWJiOWJkYmQzN2Y4ZmM4ZTNlNjY3MDZmYjliYzAzYzg')
 	
 	outputDir = rootDir + product[0] + '/'
 	
@@ -198,6 +198,8 @@ def get_satDic(products):
 	dirDic['MOD02HKM'] 		= ['MOD02HKM', 'MOD02HKM', '61', 'D']
 	dirDic['MOD021KM'] 		= ['MOD021KM', 'MOD021KM', '61', 'D']
 	dirDic['MOD03'] 		   = ['MOD03',    'MOD03',    '61', 'D']
+	dirDic['MOD04_L2'] 	   = ['MOD04_L2', 'MOD04_L2', '61', 'D']
+	dirDic['MYD04_L2']	   = ['MYD04_L2', 'MYD04_L2', '61', 'D']
 	dirDic['MOD04_3K'] 		= ['MOD04_3K', 'MOD04_3K', '61', 'D']
 
 	keys = dirDic.keys()
@@ -264,7 +266,7 @@ def download_singleFile(item, outputDir, **kwargs):
 	import numpy as np
 	from random import randint
 	
-	appKey	= kwargs.get('appKey', 'Bearer B6148868-1922-11E9-A62B-CCB570C49BBF')
+	appKey	= kwargs.get('appKey', 'Bearer d2FuZ3lzZWE6ZVdrdGQyRnVaeTAwUUhWcGIzZGhMbVZrZFE9PToxNjI0ODk5NzY4OjkwNTEyZmZhMWJiOWJkYmQzN2Y4ZmM4ZTNlNjY3MDZmYjliYzAzYzg')
 	
 	# -q we mute wget command to print any message to the screen
 	command = 'wget -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=3 ' + item + \
@@ -291,7 +293,7 @@ def download_singleFile(item, outputDir, **kwargs):
 #-----------------------------------------------------------------------
 def download_data(products, date, cord, rootDir, **kwargs):
 	
-	appKey		= kwargs.get('appKey', 'Bearer B6148868-1922-11E9-A62B-CCB570C49BBF')
+	appKey		= kwargs.get('appKey', 'Bearer d2FuZ3lzZWE6ZVdrdGQyRnVaeTAwUUhWcGIzZGhMbVZrZFE9PToxNjI0ODk5NzY4OjkwNTEyZmZhMWJiOWJkYmQzN2Y4ZmM4ZTNlNjY3MDZmYjliYzAzYzg')
 	crosscheck	= kwargs.get('crosscheck', False)
 	
 	dirDic = get_satDic(products)
@@ -328,7 +330,7 @@ def download_missing(products, rootDir, **kwargs):
 	import os
 	import mylib.convert_time_coordinate as ctc
 	
-	appKey		= kwargs.get('appKey', 'Bearer B6148868-1922-11E9-A62B-CCB570C49BBF')
+	appKey		= kwargs.get('appKey', 'Bearer d2FuZ3lzZWE6ZVdrdGQyRnVaeTAwUUhWcGIzZGhMbVZrZFE9PToxNjI0ODk5NzY4OjkwNTEyZmZhMWJiOWJkYmQzN2Y4ZmM4ZTNlNjY3MDZmYjliYzAzYzg')
 	
 	numDir = len(products)
 	allFiles = {}
@@ -396,7 +398,7 @@ def download_missing(products, rootDir, **kwargs):
 def download_empty(products, rootDir, **kwargs):
 
 	import os
-	appKey		= kwargs.get('appKey', 'Bearer B6148868-1922-11E9-A62B-CCB570C49BBF')
+	appKey		= kwargs.get('appKey', 'Bearer d2FuZ3lzZWE6ZVdrdGQyRnVaeTAwUUhWcGIzZGhMbVZrZFE9PToxNjI0ODk5NzY4OjkwNTEyZmZhMWJiOWJkYmQzN2Y4ZmM4ZTNlNjY3MDZmYjliYzAzYzg')
 	numDir = len(products)
 	dirDic = get_satDic(products)
 	urlhead = 'https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/'
@@ -532,7 +534,7 @@ def get_data_properties(product, date, cord, rootDir):
 					continue
 				
 				command = 'wget -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=3 ' + aux_info['urlFile'] + \
-			          ' --header "Authorization: Bearer B6148868-1922-11E9-A62B-CCB570C49BBF" -O ' + \
+			          ' --header "Authorization: Bearer d2FuZ3lzZWE6ZVdrdGQyRnVaeTAwUUhWcGIzZGhMbVZrZFE9PToxNjI0ODk5NzY4OjkwNTEyZmZhMWJiOWJkYmQzN2Y4ZmM4ZTNlNjY3MDZmYjliYzAzYzg" -O ' + \
 			          outputDir + bnameF #+ " > /dev/null 2>&1"
 			    			
 				os.system(command)

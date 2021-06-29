@@ -140,8 +140,9 @@ class trend_analysis():
         self.trend_std = self.noise_std / \
                 ((len(x)/12.0)**1.5) * np.sqrt((1.0+self.r1)/(1.0-self.r1))
 
-    def analysis_yearly(self, y):
+    def analysis_yearly(self, yy):
         """ for year data
+        use np.nan to fill missing year.
         (ywang, 05/22/20)
         """
 
@@ -149,7 +150,10 @@ class trend_analysis():
         self.fit_model = self.model_0
 
         # get model parameters
-        x = np.array(range(len(y)), dtype=float)
+        xx = np.array(range(len(yy)), dtype=float)
+        flag = np.logical_not( np.isnan(yy) )
+        x = xx[flag]
+        y = yy[flag]
         popt, pcov = curve_fit(self.fit_model, x, y)
         self.popt = popt
         self.pcov = pcov
