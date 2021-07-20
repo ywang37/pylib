@@ -302,6 +302,39 @@ def region_limit_flag(lat, lon, region_limit):
 #
 #------------------------------------------------------------------------------
 #
+def is_in_region(lat, lon, region_limit):
+    """ Determine if the given location is in the *region_limit*.
+    (Yi Wang, 07/19/2021)
+
+    Parameters
+    ----------
+    lat : float
+        Latitude
+    lon : float
+        Longitude
+    region_limit : list-like
+        [lat_min, lon_min, lat_max, lon_max]
+
+    Returns
+    -------
+    flag : logical
+        In or not in the *region_limit*
+
+                                                                                """
+
+    lat_min = region_limit[0]
+    lon_min = region_limit[1]
+    lat_max = region_limit[2]
+    lon_max = region_limit[3]
+
+    flag_lat = ((lat >= lat_min) and (lat <= lat_max))
+    flag_lon = ((lon >= lon_min) and (lon <= lon_max))
+    flag = (flag_lat and flag_lon)
+
+    return flag
+#
+#------------------------------------------------------------------------------
+#
 def generate_grid_gc_2x25():
     """
     """
