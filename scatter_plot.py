@@ -4,13 +4,82 @@ from scipy import stats
 
 import mylib.metrics as ms
 
+#
+#------------------------------------------------------------------------------
+#
+def bin_x_y(in_xx, in_yy, xx_edge, min_num=3):
+    """ bin x and y.
+
+    Parameters
+    ----------
+    in_xx :
+        xx
+    in_yy :
+        yy
+    xx_edge : 1D array
+        edge of xx bin
+    min_num : int
+        The minimum number for a bin
+
+    Returns
+    -------
+    out_dict : dict
+
+    """
+
+    # copy and flatten data
+    xx = in_xx.flatten()
+    yy = in_yy.flatten()
+
+    #
+    xx_mean   = []
+    xx_std    = []
+    xx_median = []
+    yy_mean   = []
+    yy_std    = []
+    yy_median = []
+    num       = []
+    for i in range(len(xx_edge)-1):
+        min_edge = xx_edge[i]
+        max_dege = xx_edge[i+1]
+        flag = np.logical_and(xx >= min_edge, xx < max_dege)
+        num.append(np.sum(flag))
+        if (np.sum(flag) >= min_num):
+            xx_mean.append(np.mean(xx[flag]))
+            xx_std.append(np.std(xx[flag]))
+            xx_median.append(np.median(xx[flag]))
+            yy_mean.append(np.mean(yy[flag]))
+            yy_std.append(np.std(yy[flag]))
+            yy_median.append(np.median(yy[flag]))
+        else:
+            xx_mean.append(np.nan)
+            xx_std.append(np.nan)
+            xx_median.append(np.nan)
+            yy_mean.append(np.nan)
+            yy_std.append(np.nan)
+            yy_median.append(np.nan)
+
+    out_dict = {}
+    out_dict['xx_mean']   = np.array(xx_mean)
+    out_dict['xx_std']    = np.array(xx_std)
+    out_dict['xx_median'] = np.array(xx_median)
+    out_dict['yy_mean']   = np.array(yy_mean)
+    out_dict['yy_std']    = np.array(yy_std)
+    out_dict['yy_median'] = np.array(yy_median)
+    out_dict['num']       = np.array(num)
+
+    return out_dict
+#
+#------------------------------------------------------------------------------
+#
 def histogram2D(ax, in_x_data, in_y_data, bins=10, range=None,
         weights=None, density=None, 
         cmap=plt.get_cmap('jet'), vmin=0, vmax=None, alpha=0.7,
         **kwargs):
     """ plot 2D histogram of density
 
-    Parameters:
+    Parameters
+    ----------
     bins, range, weights, and density are passed to
         np.histogram2d
     cmap :
