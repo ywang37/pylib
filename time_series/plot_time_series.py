@@ -15,10 +15,13 @@ def plot_time_series_twinx(l_data_dict, r_data_dict, l_varnames,
         l_scale=1.0, r_scale=1.0, xlabel='', l_ylabel='', 
         r_ylabel='', xlim=None, l_ylim=None, r_ylim=None,
         l_color_dict={}, r_color_dict={},
+        l_linestyle_dict={}, r_linestyle_dict={},
         l_ylabel_color='C0', r_ylabel_color='C1',
         l_ytick_color='C0', r_ytick_color='C1',
         l_label_dict={}, r_label_dict={}, legend=True,
-        fig=None, ax=None):
+        fig=None, ax=None,
+        legend_dict={},
+        subplots_adjust=True, markersize=None):
     """ Plot time series that share the same x-axis.
     (ywang, 07/14/20)
 
@@ -62,6 +65,10 @@ def plot_time_series_twinx(l_data_dict, r_data_dict, l_varnames,
         Colors for *l_data_dict*
     r_color_dict : dict
         Color for *r_data_dict*
+    l_linestyle_dict : dict
+        Line style for *l_data_dict*
+    r_linestyle_dict : dict
+        Line style for *r_data_dict*
     l_ylabel_color : str
         Left y-axis label color
     r_ylabel_color : str
@@ -81,6 +88,12 @@ def plot_time_series_twinx(l_data_dict, r_data_dict, l_varnames,
         will be created.
     ax : None or axes instance.
         If None, an axes instance will be created.
+    legend_dict : dict
+        dictionary for legend
+    subplots_adjust : logical
+        Adjust margin.
+    markersize : None or int
+        marker size
 
     Returns
     -------
@@ -117,9 +130,11 @@ def plot_time_series_twinx(l_data_dict, r_data_dict, l_varnames,
 
         l_label = l_label_dict.get(l_varn, '')
         l_color = l_color_dict.get(l_varn, 'C0')
+        l_linestyle = l_linestyle_dict.get(l_varn, '-')
 
         l_line, = ax.plot(xx, l_yy * l_scale, marker='o', label=l_label,
-                c=l_color)
+                c=l_color, markersize=markersize,
+                linestyle=l_linestyle)
         l_line_list.append(l_line)
 
     ax.set_ylabel(l_ylabel)
@@ -147,9 +162,11 @@ def plot_time_series_twinx(l_data_dict, r_data_dict, l_varnames,
 
         r_label = r_label_dict.get(r_varn, '')
         r_color = r_color_dict.get(r_varn, 'C1')
+        r_linestyle = r_linestyle_dict.get(r_varn, '-')
 
         r_line, = ax_t.plot(xx, r_yy * r_scale, marker='o', label=r_label,
-                c=r_color)
+                c=r_color, markersize=markersize,
+                linestyle=r_linestyle)
         r_line_list.append(r_line)
 
     ax_t.set_ylabel(r_ylabel)
@@ -161,12 +178,13 @@ def plot_time_series_twinx(l_data_dict, r_data_dict, l_varnames,
     ax_t.tick_params(axis='y', colors=r_ytick_color)
 
     #
-    plt.subplots_adjust(left=0.20, right=0.80, bottom=0.25, top=0.75)
+    if subplots_adjust:
+        plt.subplots_adjust(left=0.2, right=0.8, bottom=0.25, top=0.75)
 
     if legend:
         line_list = l_line_list + r_line_list
         ax.legend(line_list, [l.get_label() for l in line_list],
-                loc='best')
+                **legend_dict)
 
     return out_dict
 #
