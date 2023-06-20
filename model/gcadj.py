@@ -7,6 +7,9 @@ Created on March 10, 2020
 import matplotlib.pyplot as plt
 import numpy as np
 
+#
+#-----------------------------------------------------------------------------
+#
 def read_iter(filename, verbose=True):
     """ Read gctm.iteration file.
     """
@@ -21,7 +24,9 @@ def read_iter(filename, verbose=True):
             })
 
     return data
-
+#
+#-----------------------------------------------------------------------------
+#
 def plot_cost(filename, ax=None, n_iter=None, select_iter=None,
         legend=True, verbose=True,
         ylabel='Normalized cost function',
@@ -92,8 +97,44 @@ def plot_cost(filename, ax=None, n_iter=None, select_iter=None,
 
     ax.set_xlabel('Number of iterations')
     ax.set_ylabel(ylabel)
+#
+#-----------------------------------------------------------------------------
+#
+def calc_fd_grad(cost1, cost2, perb, log_flag=True,
+        method='center', ref=1.0):
+    """ Calculate finite difference gradient.
+    """
 
+    if method == 'center':
+        x2 = ref + perb
+        x1 = ref - perb
+    elif method == 'forward':
+        x2 = ref + perb
+        x1 = ref
+    elif method == 'backward':
+        x2 = ref
+        x1 = ref - perb
+    else:
+        print(' - calc_fd_grad: method error')
+        exit()
 
+    if log_flag:
+        x_diff =  np.log(x2) - np.log(x1)
+    else:
+        x_diff = x2 - x1
 
+    grad = (cost2 - cost1) / x_diff
 
+    return grad
+#
+#-----------------------------------------------------------------------------
+#
+
+#
+#-----------------------------------------------------------------------------
+#
+
+#
+#-----------------------------------------------------------------------------
+#
 

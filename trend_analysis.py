@@ -2,6 +2,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
+from scipy import stats
 
 from mylib.cartopy_plot import cartopy_plot
 from mylib.colormap.gbcwpry_map import gbcwpry_map
@@ -345,19 +346,54 @@ def plot_trend_map(filename, fig_dir, mean_flag=True, trend_flag=True,
         # save trends that are significant plot
         fig_trend_signi = fig_dir + name + '_trend_signi.png'
         plt.savefig(fig_trend_signi, format='png', dpi=300)
+#
+#------------------------------------------------------------------------------
+#
+def compare_two_slopes(n1, n2, slope1, slope2, stderr1, stderr2):
+    """ Compare if the two slopes are significantly different.
+
+    Parameters
+    ----------
+
+    n1 : int
+        Sample size for line 1
+    n2 : int
+        Sample size for line 2
+    slope1 : float
+        Slope size for line 1
+    slope2 : float
+        Slope size for line 2
+    stderr1 : float
+        Standard error for line 1
+    stderr2 : float
+        Standard error for line 2
+
+    Returns
+    -------
+    out_dict : dict
+        "t" : t-value for the difference between two slopes
+        "dof" : degree of freedom
+        "p" : p-value
+
+    """
+
+    # t-value for the difference between two slopes
+    t = (slope1 - slope2) / np.sqrt(stderr1 ** 2 + stderr2 ** 2)
+
+    # degree of freedom
+    dof = n1 + n2 - 4
+
+    # p-value
+    p = stats.t.sf(abs(t), df=dof)
 
 
+    # output
+    out_dict = {}
+    out_dict['t']   = t
+    out_dict['dof'] = dof
+    out_dict['p']   = p
 
-
-        
-
-
-
-
-
-
-
-
+    return out_dict
 #
 #------------------------------------------------------------------------------
 #
