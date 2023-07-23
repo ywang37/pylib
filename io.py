@@ -114,6 +114,7 @@ def read_nc(filename, varnames, verbose=False,
 def write_nc(filename, data_dict, units_dict=None,
         longname_dict=None,
         data_1D_time_dict=None,
+        data_1D_time_type_dict={},
         data_3D_time_dict=None, time_type='int',
         verbose=True):
     """ Write 2-D, 3-D fields to netCDF file
@@ -130,7 +131,9 @@ def write_nc(filename, data_dict, units_dict=None,
     longname_dict : dict
         Long name dictionary
     data_1D_time_dict : dict
-        3D varibale dictionary (time,)
+        1D varibale dictionary (time,)
+    data_1D_time_type_dict : dict
+        1D varibale dictionary (time,)
     data_3D_time_dict : dict
         3D varibale dictionary (time, Laititude, Longitude)
     time_type : str
@@ -200,17 +203,15 @@ def write_nc(filename, data_dict, units_dict=None,
             if varname == 'time':
                 nc_var = nc_f.createVariable('time', time_type, ('time',))
             else:
-                nc_var = nc_f.createVariable(varname, 'f4', ('time',))
+                curr_type = data_1D_time_type_dict.get(varname, 'f4')
+                nc_var = nc_f.createVariable(varname, curr_type, ('time',))
             nc_var_dict[varname] = nc_var
 
     # (time, Laititude, Longitude) variables
     if data_3D_time_dict is not None:
         for varname in data_3D_time_dict:
-            if varname == 'time':
-                nc_var = nc_f.createVariable('time', time_type, ('time',))
-            else:
-                nc_var = nc_f.createVariable(varname, 'f4', 
-                        ('time', 'Latitude', 'Longitude'))
+            nc_var = nc_f.createVariable(varname, 'f4', 
+                    ('time', 'Latitude', 'Longitude'))
             nc_var_dict[varname] = nc_var
 
     # write variables

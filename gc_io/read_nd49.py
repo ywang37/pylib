@@ -7,7 +7,7 @@ Created on January 13, 2020
 import datetime
 import numpy as np
 import os
-from PseudoNetCDF.pncparse import pncparse
+import PseudoNetCDF as pnc
 
 def read_nd49_resample(file_list, varname_list):
     """ read data from GEOS-Chem ND49 file from resampling 
@@ -49,8 +49,7 @@ def read_nd49_resample(file_list, varname_list):
 
         # read file
         print('reading ' + filename)
-        infiles, argcs = pncparse(args = [filename, '-f bpch'])
-        infile = infiles[0]
+        infile = pnc.pncopen(filename, format='bpch')
 
         # get variables
         for varname in varname_list:
@@ -125,8 +124,7 @@ def read_bpch(filename, varname_list, latlon_flag=True,
     # read file
     if verbose:
         print('reading ' + filename)
-    infiles, argcs = pncparse(args = [filename, '-f bpch'])
-    infile = infiles[0]
+    infile = pnc.pncopen(filename, format='bpch')
 
     # get variables
     for varname in varname_list:

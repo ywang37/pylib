@@ -82,7 +82,7 @@ def vmr_to_DU(val_old, air_den, box_hgt, vmr=None):
     val_old :
         unit is ppbv, ppmv, or v/v, depends on *vmr*
     air_den :
-        air density. unit is molce/cm^2
+        air density. unit is molce/cm^3
     box_hgt :
         box height. unit is m.
     vmr :
