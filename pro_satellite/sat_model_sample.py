@@ -16,7 +16,7 @@ from mylib.interpolate.interpolate import linear_interp_weight
 #
 def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         sat_lat, sat_lon, sat_TAI93, sat_obs_dict,
-        mod_flag=None, sat_flag=None,
+        mod_flag=None, sat_flag=None, delta=None
         ):
     """ Sample model results according satellite observations
     and regrid satellite observations to model grids.
@@ -29,7 +29,7 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         'ses' means Starting point, Ending point, and Step
             are given. Keys are 'lat_start', 'lat_end',
             'lat_step', 'lon_start', 'lon_end' and 'lon_step'
-    mod_TAI93 : 1-D numpy array
+    mod_TAI93 : 1-D numpy array or a scalar
         Seconds since 1993-01-01Z00:00:00 for model.
     mod_var_dict : dict
         Every value is a model variable array to be sampled.
@@ -54,6 +54,12 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         for regriding or not. True: available. False: not.
         If it is None, all observations are available for
         regriding.
+    delta : When *delta* is None, *mod_TAI93* is a 1-D numpy
+        array, and model are linearly interpolated to 
+        *sat_TAI93*. When *delta* is a number, *mod_TAI93* is
+        a scalar (unit is second), and 
+        np.all(np.abs(*mod_TAI93* - *sat_TAI93*) <= *delta* 
+        must be True.
 
     Returns
     -------
@@ -101,33 +107,55 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         exit()
 
     # check mod_TAI93
-    for i in range(len(mod_TAI93)-1):
-        if (mod_TAI93[i] >= mod_TAI93[i+1]):
-            print(' - sat_model_sample: mod_TAI93 is not ascending.')
-            print('mod_TAI93: ')
-            print(mod_TAI93)
-            print('mod_TAI93[{}]: {}'.format(i,mod_TAI93[i]))
-            print('mod_TAI93[{}]: {}'.format(i+1,mod_TAI93[i+1]))
+    if (delta is None):
+
+        for i in range(len(mod_TAI93)-1):
+            if (mod_TAI93[i] >= mod_TAI93[i+1]):
+                print(' - sat_model_sample: mod_TAI93 is not ascending.')
+                print('mod_TAI93: ')
+                print(mod_TAI93)
+                print('mod_TAI93[{}]: {}'.format(i,mod_TAI93[i]))
+                print('mod_TAI93[{}]: {}'.format(i+1,mod_TAI93[i+1]))
+                exit()
+
+    else:
+
+        if not np.all((sat_TAI93 - mod_TAI93) <= delta):
+            print(' - sat_model_sample: satellite observational time ' + \
+                    'is not close to model time.')
+            print('mod_TAI93 = {:}'.format(mod_TAI93))
+            print('delta = {:}'.format(delta))
+            print('The largest sat_TAI93 = {:}'.format(np.max(sat_TAI93)))
+            print('The smallest sat_TAI93 = {:}'.format(np.min(sat_TAI93)))
             exit()
+
+    if delta is None:
+        # the first dimention is time.
+        offset = 1
+    else:
+        # the first dimention is latitude
+        offset = 0
 
     # check model dimensions
     for mod_var_name in mod_var_name_list:
 
         mod_var_shape = mod_var_dict[mod_var_name].shape
 
-        if ( mod_var_shape[0] != mod_TAI93.shape[0] ):
-            print(' - sat_model_sample: ' + mod_var_name + \
-                    ' time is inconsistent ' + \
-                    'with that in mod_TAI93.')
-            print('mod_TAI93: ')
-            print(mod_TAI93)
-            print('mod_TAI93.shape[0]: {}'.format(mod_TAI93.shape[0]))
-            print(mod_var_name + \
-                    '.shape[0]: {}'.format(mod_var_shape[0]))
-            exit()
+        if (delta is None):
 
-        if ( (mod_var_shape[1] != mod_n_lat) or \
-                (mod_var_shape[2] != mod_n_lon) ):
+            if ( mod_var_shape[0] != mod_TAI93.shape[0] ):
+                print(' - sat_model_sample: ' + mod_var_name + \
+                        ' time is inconsistent ' + \
+                        'with that in mod_TAI93.')
+                print('mod_TAI93: ')
+                print(mod_TAI93)
+                print('mod_TAI93.shape[0]: {}'.format(mod_TAI93.shape[0]))
+                print(mod_var_name + \
+                        '.shape[0]: {}'.format(mod_var_shape[0]))
+                exit()
+
+        if ( (mod_var_shape[offset] != mod_n_lat) or \
+                (mod_var_shape[1+offset] != mod_n_lon) ):
             print(' - sat_model_sample: ' + mod_var_name  + \
                     ' grid is inconsistent ' + \
                     'with the dimension of model variable.')
@@ -161,15 +189,16 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         sat_flag = np.full_like(sat_lat, True)
         print(sat_flag.shape)
 
-    # mod_TAI93
-    mod_TAI93_start = mod_TAI93[0]
-    mod_TAI93_end   = mod_TAI93[-1]
-    mod_n_time      = len(mod_TAI93)
-    mod_sec_step    = (mod_TAI93_end - mod_TAI93_start) / (mod_n_time - 1)
-    print(mod_TAI93_start)
-    print(mod_TAI93_end)
-    print(mod_n_time)
-    print(mod_sec_step)
+    # mod_TAI93 for linear interpolation
+    if delta is None:
+        mod_TAI93_start = mod_TAI93[0]
+        mod_TAI93_end   = mod_TAI93[-1]
+        mod_n_time      = len(mod_TAI93)
+        mod_sec_step    = (mod_TAI93_end - mod_TAI93_start) / (mod_n_time - 1)
+        print(mod_TAI93_start)
+        print(mod_TAI93_end)
+        print(mod_n_time)
+        print(mod_sec_step)
 
     # arrays that are used to save resmampled model variables
     # in the model grid
@@ -178,7 +207,7 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
     for mod_var_name in mod_var_name_list:
 
         # shape
-        mod_grid_shape = mod_var_dict[mod_var_name].shape[1:]
+        mod_grid_shape = mod_var_dict[mod_var_name].shape[offset:]
 
         # model data
         mod_grid = np.zeros(mod_grid_shape, dtype=float)
@@ -209,6 +238,7 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
         # satellite data
         sat_grid = np.zeros(sat_grid_shape, dtype=float)
         sat_grid_dict[sat_obs_name] = sat_grid
+        #print(sat_obs_name, sat_grid_shape)
 
         # save satellite data like station data 
         sat_1D_dict[sat_obs_name] = []
@@ -227,9 +257,10 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
 
             # skip satellite data that are not in
             # the time range of model
-            if ( (sat_TAI93[sat_i,sat_j] < mod_TAI93_start) or \
-                    (sat_TAI93[sat_i,sat_j] > mod_TAI93_end  ) ):
-                continue
+            if delta is None:
+                if ( (sat_TAI93[sat_i,sat_j] < mod_TAI93_start) or \
+                        (sat_TAI93[sat_i,sat_j] > mod_TAI93_end  ) ):
+                    continue
 
             # skip satellite data that are not in
             # the model grid region
@@ -241,21 +272,22 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
 
             # determine the indexes of mod_TAI93, so satelite time
             # is within the corresponding model time
-            ind_1 = int( (sat_TAI93[sat_i,sat_j] - mod_TAI93_start) 
-                    / mod_sec_step )
-            if (ind_1 == mod_n_time):
-                ind_1 = ind_1 - 1
-            ind_2 = ind_1 + 1
-            if not ((sat_TAI93[sat_i,sat_j] >= mod_TAI93[ind_1]) or
-                    (sat_TAI93[sat_i,sat_j] <= mod_TAI93[ind_2])):
-                print(' - sat_model_sample: error')
-                print('mod_TAI93: ')
-                print(mod_TAI93)
-                print('sat_TAI93[{},{}]: {}'.format(sat_i,sat_j,
-                    sat_TAI93[sat_i,sat_j]))
-                print('mod_TAI93[{}]: {}'.format(ind_1, mod_TAI93[ind_1]))
-                print('mod_TAI93[{}]: {}'.format(ind_2, mod_TAI93[ind_2]))
-                exit()
+            if delta is None:
+                ind_1 = int( (sat_TAI93[sat_i,sat_j] - mod_TAI93_start) 
+                        / mod_sec_step )
+                if (ind_1 == mod_n_time):
+                    ind_1 = ind_1 - 1
+                ind_2 = ind_1 + 1
+                if not ((sat_TAI93[sat_i,sat_j] >= mod_TAI93[ind_1]) or
+                        (sat_TAI93[sat_i,sat_j] <= mod_TAI93[ind_2])):
+                    print(' - sat_model_sample: error')
+                    print('mod_TAI93: ')
+                    print(mod_TAI93)
+                    print('sat_TAI93[{},{}]: {}'.format(sat_i,sat_j,
+                        sat_TAI93[sat_i,sat_j]))
+                    print('mod_TAI93[{}]: {}'.format(ind_1, mod_TAI93[ind_1]))
+                    print('mod_TAI93[{}]: {}'.format(ind_2, mod_TAI93[ind_2]))
+                    exit()
 
             # indexed of satellite data in model grid
             mod_i = get_center_index_2(sat_lat[sat_i,sat_j], 
@@ -276,6 +308,11 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
                 sat_1D       = sat_1D_dict[sat_obs_name]
 
                 # accumulate satellite data at model grid
+                ##print('00000000000000000000')
+                ##print(sat_obs_name)
+                ##print(sat_grid.shape, mod_i, mod_j)
+                ##print(sat_obs.shape, sat_i, sat_j)
+                ##print('00000000000000000000')
                 sat_grid[mod_i,mod_j] += sat_obs[sat_i,sat_j]
 
                 # save satellite data like station data
@@ -289,26 +326,35 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
                 mod_grid     = mod_grid_dict[mod_var_name]
                 mod_1D       = mod_1D_dict[mod_var_name]
 
-                # The closest model variables that are before
-                # and after satellite overpass time
-                mod_var_1 = mod_var[ind_1,mod_i,mod_j]
-                mod_var_2 = mod_var[ind_2,mod_i,mod_j]
+                if delta is None:
+                    # The closest model variables that are before
+                    # and after satellite overpass time
+                    mod_var_1 = mod_var[ind_1,mod_i,mod_j]
+                    mod_var_2 = mod_var[ind_2,mod_i,mod_j]
 
-                # linear interpolation weight
-                x  = sat_TAI93[sat_i,sat_j]
-                x1 = mod_TAI93[ind_1]
-                x2 = mod_TAI93[ind_2]
-                weight = linear_interp_weight(x, x1, x2)
+                    # linear interpolation weight
+                    x  = sat_TAI93[sat_i,sat_j]
+                    x1 = mod_TAI93[ind_1]
+                    x2 = mod_TAI93[ind_2]
+                    weight = linear_interp_weight(x, x1, x2)
 
-                # linear interpolation
-                mod_var_interp = \
-                        (mod_var_1 * weight[0]) + (mod_var_2 * weight[1])
+                    # linear interpolation
+                    mod_var_interp = \
+                            (mod_var_1 * weight[0]) + (mod_var_2 * weight[1])
 
-                # accumulte resampled model variables at model grid
-                mod_grid[mod_i,mod_j] += mod_var_interp
+                    # accumulte resampled model variables at model grid
+                    mod_grid[mod_i,mod_j] += mod_var_interp
 
-                # save resampled model variables like station data
-                mod_1D.append(mod_var_interp)
+                    # save resampled model variables like station data
+                    mod_1D.append(mod_var_interp)
+
+                else:
+
+                    # accumulte resampled model variables at model grid
+                    mod_grid[mod_i,mod_j] += mod_var[mod_i,mod_j]
+
+                    # save resampled model variables like station data
+                    mod_1D.append(mod_var[mod_i,mod_j])
 
     # average of satellite data at model grid
     for sat_obs_name in sat_obs_name_list:
@@ -321,10 +367,16 @@ def sat_model_sample(mod_coord_dict, mod_TAI93, mod_var_dict,
                 sat_grid.shape[::-1])
         sat_grid_num_full = sat_grid_num_full.T
 
+        #print('-----------')
+        #print(sat_obs_name)
+
         # average 
         sat_grid_flag = (sat_grid_num_full > 0)
+        #print(np.min(sat_grid), np.max(sat_grid))
         sat_grid[sat_grid_flag] /= sat_grid_num_full[sat_grid_flag]
+        #print(np.min(sat_grid), np.max(sat_grid))
         sat_grid[np.logical_not(sat_grid_flag)] = np.nan
+        #print(np.nanmin(sat_grid), np.nanmax(sat_grid))
 
         # just convert list to array
         sat_1D_dict[sat_obs_name] = np.array(sat_1D_dict[sat_obs_name])

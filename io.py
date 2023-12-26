@@ -116,7 +116,8 @@ def write_nc(filename, data_dict, units_dict=None,
         data_1D_time_dict=None,
         data_1D_time_type_dict={},
         data_3D_time_dict=None, time_type='int',
-        verbose=True):
+        verbose=True,
+        glo_attr={}):
     """ Write 2-D, 3-D fields to netCDF file
     (Yi Wang, 02/17/2020)
 
@@ -140,6 +141,8 @@ def write_nc(filename, data_dict, units_dict=None,
         Data type for time
     verbose : logical
         Whether or not output more informations.
+    glo_attr : dict
+        Global string attributes
 
     Returns
     -------
@@ -243,6 +246,10 @@ def write_nc(filename, data_dict, units_dict=None,
     if longname_dict is not None:
         for varname in longname_dict:
             nc_var_dict[varname].longname = longname_dict[varname]
+
+    # add global attributes
+    for attrname in glo_attr:
+        setattr(nc_f, attrname, glo_attr[attrname])
 
     # close file
     nc_f.close()

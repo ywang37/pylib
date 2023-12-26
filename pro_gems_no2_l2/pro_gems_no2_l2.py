@@ -7,7 +7,7 @@ Created on March 11, 2019
 import numpy as np
 
 def QC_GEMS_NO2_L2(NO2, sza, vza, CF,\
-        min_val=-1e30, sza_T=75.0, vza_T=65.0, CF_T=0.3):
+        min_val=-1e30, sza_T=70.0, vza_T=65.0, CF_T=0.3):
     """ Quality control for GEMS L2 NO2 (ColumnAmountNO2Trop)
     product.
 

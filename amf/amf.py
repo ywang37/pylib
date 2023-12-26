@@ -485,7 +485,7 @@ def AMF_trop_one(layer_val, PEdge_Bot, SW_AK, SW_AK_press, ind_l=None,
 
         # Vertical column density that can be compared to
         # the satellite retrieval.
-        VCD_AK = VCD_AK_one(trop_layer_val, trpo_SW_AK)
+        VCD_AK = VCD_AK_one(trop_layer_val, trop_SW_AK)
         out_dict['VCD_AK'] = VCD_AK
 
     else:
@@ -503,7 +503,7 @@ def AMF_trop_one(layer_val, PEdge_Bot, SW_AK, SW_AK_press, ind_l=None,
 #------------------------------------------------------------------------------
 #
 def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr, 
-        SW_AK_press, ind_l_arr=None,
+        SW_AK_press_arr, ind_l_arr=None,
         P_tropopause_arr=None, var='AMF',
         flag=None):
     """ Calculate tropospheric
@@ -520,7 +520,7 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
         The elements are PEdge_Bot parameter for AMF_trop_one function.
     SW_AK_arr : 2-D or 3-D array
         The elements are SW_AK parameter for AMF_trop_one function.
-    SW_AK_press : 1-D array
+    SW_AK_press_arr : 1-D (or the same dimension of *layer_val_arr*) array
         Pressure of *SW_AK_arr*
     ind_l_arr : 1-D or 2-D array or None
         The elements are ind_l parameter for AMF_trop_one function.
@@ -598,10 +598,18 @@ def AMF_trop(layer_val_arr, PEdge_Bot_arr, SW_AK_arr,
             layer_val = layer_val_arr[ind,:]
             PEdge_Bot = PEdge_Bot_arr[ind,:]
             SW_AK     = SW_AK_arr[ind, :]
+            if (SW_AK_press_arr.ndim == 1):
+                SW_AK_press = SW_AK_press_arr
+            else:
+                SW_AK_press = SW_AK_press_arr[ind,:]
         elif (len(dim) == 2):
             layer_val = layer_val_arr[ind[0],ind[1],:]
             PEdge_Bot = PEdge_Bot_arr[ind[0],ind[1],:]
             SW_AK     = SW_AK_arr[ind[0],ind[1], :]
+            if (SW_AK_press_arr.ndim == 1):
+                SW_AK_press = SW_AK_press_arr
+            else:
+                SW_AK_press = SW_AK_press_arr[ind[0],ind[1],:]
         else:
             print(' - AMF_trop: dimension error. 2')
             exit()

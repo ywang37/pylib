@@ -129,7 +129,7 @@ def read_inst_resample(file_list, varname_list, latlon_flag=True,
     # conver date_time to TAI93
     if time:
 
-        out_dict['date_time'] = date_time
+        out_dict['date_time'] = np.array(date_time)
 
         out_dict['TAI93'] = []
 
